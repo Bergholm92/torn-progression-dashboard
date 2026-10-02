@@ -365,9 +365,17 @@
       row("Dexterity", statDelta(b.dexterity,d24.dexterity));
 
     $("investmentRows").innerHTML =
-      row("Stock-kandidat", esc(best.ticker||"—")) +
+      row("Stock-kandidat", esc((best.ticker||"—") + (best.stock_name ? " · " + best.stock_name : ""))) +
+      row("Aktier", num(best.shares_current) + " / " + num(best.next_total_share_threshold)) +
+      row("Saknas", num(best.shares_needed_for_next_benefit) + " aktier") +
+      row("Pris / aktie", money(best.price_per_share)) +
+      row("Benefit", esc(best.benefit_description||"—")) +
+      row("Benefitvärde / cykel", money(best.value_per_cycle_per_increment)) +
+      row("Frekvens", best.frequency_days ? "var " + num(best.frequency_days) + ":e dag" : "—") +
+      row("Estimerat årsvärde", money(best.annual_value_per_increment)) +
       row("Kapital som behövs", money(best.capital_needed_for_next_benefit)) +
       row("Marginal-ROI / år", pct(best.marginal_annual_roi)) +
+      row("Värderingssäkerhet", esc(best.valuation_confidence||"—")) +
       row("Status", ready.stock_recommendation_ready ? "READY" : "VÄNTAR", ready.stock_recommendation_ready?"good":"warn");
 
     $("piRows").innerHTML =
@@ -379,11 +387,14 @@
       row("Dynamisk break-even / 100d", money(pivs.dynamic_pi_break_even_rent_100d)) +
       row("PI vs bästa stock", ready.pi_recommendation_ready ? esc(pivs.comparison_status||"READY") : "VÄNTAR", ready.pi_recommendation_ready?"good":"warn");
 
+    const eduWhen=edu.ends_at ? relativeTime(edu.ends_at) : "";
+    const warWhen=war.starts_at ? relativeTime(war.starts_at) : "";
     $("progressionRows").innerHTML =
       row("Education", esc(edu.course_name||"—")) +
-      row("Slutar", esc(dt(edu.ends_at))) +
+      row("Slutar", esc(dt(edu.ends_at) + (eduWhen ? " · " + eduWhen : ""))) +
       row("Merits lediga", num(merits.available)) +
-      row("War", esc((war.status||"—") + " · " + (war.opponent||"—")));
+      row("War", esc((war.status||"—") + " · " + (war.opponent||"—"))) +
+      (war.starts_at ? row("War start", esc(dt(war.starts_at) + (warWhen ? " · " + warWhen : ""))) : "");
 
     $("crimeRows").innerHTML = crimes.map(c => {
       const sr = Number(c.attempts) > 0 ? ((Number(c.successes||0)/Number(c.attempts))*100).toFixed(1)+"%" : "—";
