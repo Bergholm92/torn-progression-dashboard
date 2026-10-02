@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b0e12">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src https://sdczpggpsrikncdzpsie.supabase.co; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'none'; font-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+  <title>Torn Progression Dashboard</title>
+  <style>
+    :root{
+      color-scheme:dark;
+      --bg:#0b0e12;--card:#151a21;--card2:#1b222b;--line:#2a333e;
+      --muted:#98a6b5;--text:#eef3f8;--good:#5dd39e;--warn:#f4c95d;
+      --bad:#ff7676;--accent:#77a7ff;--accent2:#a7c4ff
+    }
+    *{box-sizing:border-box}
+    html{background:var(--bg)}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+    main{max-width:860px;margin:auto;padding:18px 14px 48px}
+    h1{font-size:23px;margin:0} h2{font-size:16px;margin:0 0 12px}
+    .sub,.muted{color:var(--muted);font-size:12px}
+    .hidden{display:none!important}
+    .top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:4px 0 16px}
+    .actions{display:flex;gap:8px;align-items:center}
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:10px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:10px}
+    .kpi{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:12px;min-width:0}
+    .label{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+    .value{font-weight:750;font-size:18px;margin-top:3px;overflow-wrap:anywhere}
+    .small{font-size:12px;color:var(--muted)}
+    .row{display:flex;justify-content:space-between;gap:16px;padding:9px 0;border-bottom:1px solid var(--line)}
+    .row:last-child{border-bottom:0}
+    .row b{text-align:right}
+    .good{color:var(--good)} .warn{color:var(--warn)} .bad{color:var(--bad)}
+    .pill{display:inline-flex;align-items:center;font-size:11px;border:1px solid var(--line);border-radius:999px;padding:6px 9px;background:var(--card2)}
+    button,input{font:inherit;border-radius:11px;border:1px solid var(--line);padding:11px 12px;background:#10151b;color:var(--text)}
+    button{background:var(--accent);color:#07101d;font-weight:750;border:0;cursor:pointer}
+    button.secondary{background:var(--card2);color:var(--text);border:1px solid var(--line)}
+    button:disabled{opacity:.55;cursor:wait}
+    .login{max-width:430px;margin:17vh auto 0}
+    .login input{width:100%;margin:12px 0}
+    .login button{width:100%}
+    .error{margin-top:10px;color:var(--bad);font-size:13px}
+    table{width:100%;border-collapse:collapse;font-size:12px}
+    td,th{text-align:left;padding:9px 4px;border-bottom:1px solid var(--line)}
+    th{color:var(--muted);font-weight:500}
+    .right{text-align:right}
+    .section-note{margin-top:-5px;margin-bottom:10px}
+    .footer{margin-top:18px;display:flex;justify-content:space-between;gap:12px;align-items:center}
+    @media(min-width:640px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+  </style>
+</head>
+<body>
+<main>
+  <section id="loginView" class="card login">
+    <h1>Torn Progression</h1>
+    <p class="muted">Privat dashboard · inga API-nycklar lagras i den här sidan</p>
+    <form id="loginForm">
+      <input id="password" type="password" autocomplete="current-password" placeholder="Dashboard-lösenord" required>
+      <button id="loginButton" type="submit">Logga in</button>
+    </form>
+    <div id="loginError" class="error hidden"></div>
+  </section>
+
+  <section id="dashboardView" class="hidden">
+    <div class="top">
+      <div>
+        <h1 id="playerName">Torn Progression</h1>
+        <div id="playerMeta" class="sub">Laddar…</div>
+      </div>
+      <div class="actions">
+        <span id="pipelinePill" class="pill">…</span>
+        <button id="refreshButton" class="secondary" type="button">Uppdatera</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="kpi"><div class="label">Total stats</div><div id="kpiStats" class="value">—</div><div id="kpiStatsDelta" class="small">—</div></div>
+      <div class="kpi"><div class="label">Energy</div><div id="kpiEnergy" class="value">—</div><div id="kpiGym" class="small">—</div></div>
+      <div class="kpi"><div class="label">Net worth</div><div id="kpiNetworth" class="value">—</div><div id="kpiStocks" class="small">—</div></div>
+      <div class="kpi"><div class="label">Cash</div><div id="kpiCash" class="value">—</div><div id="kpiBank" class="small">—</div></div>
+    </div>
+
+    <div class="card">
+      <h2>Battle stats</h2>
+      <div id="battleRows"></div>
+    </div>
+
+    <div class="card">
+      <h2>Nästa investering</h2>
+      <div id="investmentRows"></div>
+    </div>
+
+    <div class="card">
+      <h2>Private Island</h2>
+      <div id="piRows"></div>
+    </div>
+
+    <div class="card">
+      <h2>Progression</h2>
+      <div id="progressionRows"></div>
+    </div>
+
+    <div class="card">
+      <h2>Crime 2.0</h2>
+      <table>
+        <thead><tr><th>Crime</th><th>Skill</th><th class="right">Success</th></tr></thead>
+        <tbody id="crimeRows"></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>Stocks</h2>
+      <table>
+        <thead><tr><th>Stock</th><th class="right">Shares</th><th class="right">Value</th></tr></thead>
+        <tbody id="stockRows"></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>Datakvalitet</h2>
+      <div id="qualityRows"></div>
+    </div>
+
+    <div class="footer">
+      <div id="generatedAt" class="sub">—</div>
+      <button id="logoutButton" class="secondary" type="button">Logga ut</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+  "use strict";
+
+  const API = "https://sdczpggpsrikncdzpsie.supabase.co/functions/v1/torn-dashboard";
+  const SESSION_KEY = "tornDashSession";
+  const $ = (id) => document.getElementById(id);
+
+  function esc(v) {
+    return String(v ?? "")
+      .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;").replaceAll("'","&#039;");
+  }
+  function num(v) {
+    if (v === null || v === undefined || v === "") return "—";
+    const n = Number(v); return Number.isFinite(n) ? Math.round(n).toLocaleString("en-US") : "—";
+  }
+  function money(v) {
+    if (v === null || v === undefined || v === "") return "—";
+    const n = Number(v); return Number.isFinite(n) ? "$" + Math.round(n).toLocaleString("en-US") : "—";
+  }
+  function pct(v) {
+    if (v === null || v === undefined || v === "") return "—";
+    const n = Number(v); return Number.isFinite(n) ? (n * 100).toFixed(1) + "%" : "—";
+  }
+  function dt(v) {
+    if (!v) return "—";
+    const d = new Date(v); if (Number.isNaN(d.getTime())) return "—";
+    return new Intl.DateTimeFormat("sv-SE", {
+      timeZone:"Europe/Stockholm", dateStyle:"short", timeStyle:"short"
+    }).format(d);
+  }
+  function row(label, value, cls="") {
+    return '<div class="row"><span>' + esc(label) + '</span><b class="' + esc(cls) + '">' + value + '</b></div>';
+  }
+  function showLogin(message="") {
+    $("dashboardView").classList.add("hidden");
+    $("loginView").classList.remove("hidden");
+    $("loginError").textContent = message;
+    $("loginError").classList.toggle("hidden", !message);
+    $("password").value = "";
+    $("password").focus();
+  }
+  function showDashboard() {
+    $("loginView").classList.add("hidden");
+    $("dashboardView").classList.remove("hidden");
+  }
+
+  async function api(body, token="") {
+    const headers = {"Content-Type":"application/json"};
+    if (token) headers["X-Dashboard-Session"] = token;
+    const r = await fetch(API, {
+      method:"POST",
+      mode:"cors",
+      credentials:"omit",
+      cache:"no-store",
+      referrerPolicy:"no-referrer",
+      headers,
+      body:JSON.stringify(body)
+    });
+    let data = {};
+    try { data = await r.json(); } catch {}
+    if (!r.ok) {
+      const err = new Error(data.error || "Request failed");
+      err.status = r.status;
+      throw err;
+    }
+    return data;
+  }
+
+  function render(d) {
+    const p=d.profile||{}, b=d.battle_stats?.current||{}, d24=d.battle_stats?.delta_24h||{};
+    const g=d.gym||{}, e=d.economy||{}, prop=d.property||{}, pi=d.pi_economics||{};
+    const edu=d.education||{}, merits=d.merits||{}, war=d.war||{}, ready=d.readiness||{};
+    const best=d.best_stock_candidate||{}, pivs=d.pi_vs_best_stock||{};
+    const issues=Array.isArray(d.issues)?d.issues:[];
+    const crimes=Array.isArray(d.crimes)?d.crimes:[];
+    const stocks=Array.isArray(d.stocks)?d.stocks:[];
+    const pipeline=d.pipeline?.pipeline_status||"UNKNOWN";
+
+    $("playerName").textContent = p.name || "Torn Progression";
+    $("playerMeta").textContent = "Level " + (p.level ?? "—") + " · uppdaterad " + dt(p.captured_at);
+
+    const pp=$("pipelinePill");
+    pp.textContent=pipeline;
+    pp.className="pill " + (pipeline==="OK"?"good":pipeline==="STALE"?"warn":"bad");
+
+    $("kpiStats").textContent=num(b.total);
+    $("kpiStatsDelta").textContent="24h +" + num(d24.total);
+    $("kpiEnergy").textContent=num(g.energy_current) + " / " + num(g.energy_max);
+    $("kpiGym").textContent=g.gym_name||"—";
+    $("kpiNetworth").textContent=money(e.networth);
+    $("kpiStocks").textContent="Stocks " + money(e.stocks_value);
+    $("kpiCash").textContent=money(e.cash);
+    $("kpiBank").textContent="Bank " + money(e.bank_principal);
+
+    $("battleRows").innerHTML =
+      row("Strength", num(b.strength) + ' <span class="small">(+ ' + num(d24.strength) + ')</span>') +
+      row("Defense", num(b.defense) + ' <span class="small">(+ ' + num(d24.defense) + ')</span>') +
+      row("Speed", num(b.speed) + ' <span class="small">(+ ' + num(d24.speed) + ')</span>') +
+      row("Dexterity", num(b.dexterity) + ' <span class="small">(+ ' + num(d24.dexterity) + ')</span>');
+
+    $("investmentRows").innerHTML =
+      row("Stock-kandidat", esc(best.ticker||"—")) +
+      row("Kapital som behövs", money(best.capital_needed_for_next_benefit)) +
+      row("Marginal-ROI / år", pct(best.marginal_annual_roi)) +
+      row("Status", ready.stock_recommendation_ready ? "READY" : "VÄNTAR", ready.stock_recommendation_ready?"good":"warn");
+
+    $("piRows").innerHTML =
+      row("Nuvarande hyra / 100d", money(prop.actual_100_day_equivalent)) +
+      row("Marknadsmedian / 100d", money(prop.market_rent_median_100d)) +
+      row("Jämförbart köp median", money(prop.comparable_buy_median)) +
+      row("Dagar kvar", num(prop.days_remaining)) +
+      row("Rent-saved yield", pct(pi.rent_saved_yield_vs_comparable_median)) +
+      row("Dynamisk break-even / 100d", money(pivs.dynamic_pi_break_even_rent_100d)) +
+      row("PI vs bästa stock", ready.pi_recommendation_ready ? esc(pivs.comparison_status||"READY") : "VÄNTAR", ready.pi_recommendation_ready?"good":"warn");
+
+    $("progressionRows").innerHTML =
+      row("Education", esc(edu.course_name||"—")) +
+      row("Slutar", esc(dt(edu.ends_at))) +
+      row("Merits lediga", num(merits.available)) +
+      row("War", esc((war.status||"—") + " · " + (war.opponent||"—")));
+
+    $("crimeRows").innerHTML = crimes.map(c => {
+      const sr = Number(c.attempts) > 0 ? ((Number(c.successes||0)/Number(c.attempts))*100).toFixed(1)+"%" : "—";
+      return "<tr><td>"+esc(c.crime_name)+"</td><td><b>"+esc(c.skill)+"</b></td><td class=\"right\">"+esc(sr)+"</td></tr>";
+    }).join("");
+
+    $("stockRows").innerHTML = stocks.map(s =>
+      "<tr><td><b>"+esc(s.ticker||"—")+"</b></td><td class=\"right\">"+num(s.shares)+"</td><td class=\"right\">"+money(s.market_value)+"</td></tr>"
+    ).join("");
+
+    let quality =
+      row("Stock-rekommendation", ready.stock_recommendation_ready?"READY":"VÄNTAR", ready.stock_recommendation_ready?"good":"warn") +
+      row("PI-rekommendation", ready.pi_recommendation_ready?"READY":"VÄNTAR", ready.pi_recommendation_ready?"good":"warn");
+    quality += issues.map(i =>
+      row(i.issue_key||"issue", esc(i.severity||"INFO"), i.severity==="ERROR"?"bad":i.severity==="WARN"?"warn":"small")
+    ).join("");
+    $("qualityRows").innerHTML=quality;
+
+    $("generatedAt").textContent="Genererad " + dt(d.generated_at);
+    showDashboard();
+  }
+
+  async function loadData() {
+    const token=sessionStorage.getItem(SESSION_KEY);
+    if (!token) return showLogin();
+    const btn=$("refreshButton");
+    btn.disabled=true;
+    try {
+      const r=await api({action:"data"},token);
+      render(r.data||{});
+    } catch (e) {
+      if (e.status===401) {
+        sessionStorage.removeItem(SESSION_KEY);
+        showLogin("Sessionen har gått ut. Logga in igen.");
+      } else {
+        $("generatedAt").textContent="Kunde inte uppdatera: " + (e.message||"fel");
+        showDashboard();
+      }
+    } finally {
+      btn.disabled=false;
+    }
+  }
+
+  $("loginForm").addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const btn=$("loginButton");
+    btn.disabled=true;
+    $("loginError").classList.add("hidden");
+    try {
+      const r=await api({action:"login",password:$("password").value});
+      sessionStorage.setItem(SESSION_KEY,r.token);
+      $("password").value="";
+      await loadData();
+    } catch (e) {
+      showLogin(e.status===401 ? "Fel lösenord." : "Kunde inte logga in.");
+    } finally {
+      btn.disabled=false;
+    }
+  });
+
+  $("refreshButton").addEventListener("click",loadData);
+  $("logoutButton").addEventListener("click",() => {
+    sessionStorage.removeItem(SESSION_KEY);
+    showLogin();
+  });
+
+  if (sessionStorage.getItem(SESSION_KEY)) loadData(); else showLogin();
+  setInterval(() => {
+    if (sessionStorage.getItem(SESSION_KEY) && !document.hidden) loadData();
+  }, 10*60*1000);
+})();
+</script>
+</body>
+</html>
