@@ -1,11 +1,11 @@
 <!doctype html>
-<html lang="sv">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#0b0e12">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src https://sdczpggpsrikncdzpsie.supabase.co; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:; font-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src https://sdczpggpsrikncdzpsie.supabase.co; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data: https://www.torn.com; font-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
   <title>Torn Progression Dashboard</title>
   <style>
     :root{
@@ -203,51 +203,179 @@
       .card{border-radius:15px}
     }
 
+
+    /* TORN-LIKE COMPANION THEME */
+    :root{
+      --bg:#121212;--card:#1b1b1b;--card2:#222;
+      --line:#343434;--muted:#9b9b9b;--text:#e8e8e8;
+      --good:#67b56f;--warn:#d1a44a;--bad:#d65454;
+      --accent:#c32f2f;--accent2:#e05a5a;
+    }
+    html{background:#111}
+    body{
+      color:var(--text);
+      font-family:Arial,Helvetica,sans-serif;
+      background-color:#151515;
+      background-image:
+        linear-gradient(rgba(14,14,14,.88),rgba(14,14,14,.94)),
+        url("https://www.torn.com/images/v2/main/bg_jail.jpg");
+      background-size:cover;
+      background-position:center top;
+      background-attachment:fixed;
+    }
+    main{max-width:1100px;padding:12px 12px 48px}
+    h1,h2{font-family:Arial,Helvetica,sans-serif}
+    h2{
+      color:#efefef;font-size:14px;font-weight:700;
+      text-transform:uppercase;letter-spacing:.035em;
+      margin:0 0 12px;padding-left:9px;border-left:3px solid var(--accent);
+    }
+    .card{
+      border-radius:4px;border:1px solid #333;
+      background:linear-gradient(#202020,#181818);
+      box-shadow:0 2px 6px rgba(0,0,0,.35);
+      padding:13px;
+    }
+    .grid{gap:8px}.kpi,.signal,.trend-card,.status-chip{
+      border-radius:4px;background:linear-gradient(#282828,#202020);
+      border:1px solid #373737;
+    }
+    .label{color:#a9a9a9;font-size:10px;letter-spacing:.04em}
+    .value,.trend-value{color:#f3f3f3}
+    .row{border-bottom-color:#303030}
+    table th{color:#bbb;background:#202020}
+    td,th{border-bottom-color:#303030}
+    summary{color:#ddd}
+    button{
+      border-radius:3px;background:linear-gradient(#d44343,#a82525);
+      color:#fff;border:1px solid #7b1717;box-shadow:none;
+      text-shadow:0 -1px 0 rgba(0,0,0,.4);
+    }
+    button.secondary{
+      color:#ddd;background:linear-gradient(#303030,#242424);
+      border:1px solid #454545;box-shadow:none;
+    }
+    .pill{border-radius:3px;background:#202020;border-color:#3b3b3b}
+    .action-item{
+      border-radius:3px;background:#202020;border-color:#343434;
+      border-left:3px solid #c32f2f;
+    }
+    .action-item.high{border-left-color:#5aaa64}
+    .action-item.medium{border-left-color:#c28e35}
+    .tag{border-radius:3px;background:#191919}
+    .spark-line{stroke:#cf4242}.spark-area{fill:rgba(195,47,47,.10)}
+    .login{
+      border-radius:4px;border-color:#383838;background:linear-gradient(#222,#191919);
+      box-shadow:0 8px 26px rgba(0,0,0,.55);
+    }
+    .login h1{font-family:Arial,Helvetica,sans-serif;color:#eee}
+    input{border-radius:3px;border-color:#444;background:#151515}
+    .torn-header{
+      min-height:78px;display:grid;grid-template-columns:auto 1fr auto;
+      align-items:center;gap:18px;padding:0 12px;margin-bottom:8px;
+      border:1px solid #333;border-radius:4px;
+      background:linear-gradient(#252525,#171717);
+      box-shadow:0 2px 6px rgba(0,0,0,.4);
+    }
+    .torn-brand{display:flex;align-items:center;gap:12px;min-width:0}
+    .torn-logo{width:116px;height:auto;display:block;filter:drop-shadow(0 1px 2px #000)}
+    .app-title{font-size:13px;color:#aaa;border-left:1px solid #444;padding-left:12px;white-space:nowrap}
+    .player-summary{display:flex;align-items:center;gap:9px;justify-self:end}
+    .player-avatar{
+      width:44px;height:44px;border-radius:2px;object-fit:cover;object-position:50% 45%;
+      border:1px solid #555;background:#111
+    }
+    .player-copy{min-width:0}.player-name-row{display:flex;gap:6px;align-items:baseline}
+    .player-name-row strong{font-size:14px;color:#eee}.player-name-row span{font-size:11px;color:#888}
+    .header-actions{display:flex;gap:6px;align-items:center}
+    .torn-banner{
+      position:relative;overflow:hidden;min-height:118px;margin-bottom:8px;
+      border:1px solid #333;border-radius:4px;
+      background:
+        linear-gradient(90deg,rgba(14,14,14,.96) 0%,rgba(14,14,14,.78) 52%,rgba(14,14,14,.34) 100%),
+        url("https://www.torn.com/images/v2/crimes/00-hub/11-forgery-desktop-4x.webp") center 46%/cover no-repeat;
+      box-shadow:0 2px 6px rgba(0,0,0,.4);
+    }
+    .banner-content{
+      min-height:118px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+      align-items:end;gap:1px;padding:10px;
+    }
+    .banner-stat{
+      min-height:68px;padding:8px 10px;background:rgba(17,17,17,.80);
+      border:1px solid rgba(255,255,255,.08);
+    }
+    .banner-stat span{display:block;font-size:9px;color:#aaa;text-transform:uppercase;letter-spacing:.05em}
+    .banner-stat strong{display:block;color:#f0f0f0;font-size:17px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .banner-stat small{display:block;color:#888;font-size:10px;margin-top:3px}
+    .action-center-card{position:relative;overflow:hidden}
+    .action-center-card::after{
+      content:"";position:absolute;right:-40px;top:-20px;width:280px;height:150px;
+      background:url("https://www.torn.com/images/v2/crimes/00-hub/11-forgery-desktop-4x.webp") right center/cover no-repeat;
+      opacity:.055;pointer-events:none;
+    }
+    .legal-note{margin-top:3px;color:#6f6f6f}
+    @media(max-width:720px){
+      body{background-attachment:scroll}
+      main{padding:7px 7px 38px}
+      .torn-header{grid-template-columns:1fr auto;gap:8px;padding:8px;min-height:0}
+      .torn-brand{grid-column:1/-1;border-bottom:1px solid #333;padding-bottom:7px}
+      .torn-logo{width:92px}.app-title{font-size:11px}
+      .player-summary{justify-self:start}
+      .header-actions{justify-self:end}
+      .banner-content{grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}
+      .torn-banner,.banner-content{min-height:142px}
+      .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .card{border-radius:3px}
+    }
+
   </style>
 </head>
 <body>
 <main>
   <section id="loginView" class="card login">
     <h1>Torn Progression</h1>
-    <p class="muted">Privat dashboard · inga API-nycklar lagras i den här sidan</p>
+    <p class="muted">Private dashboard · no API keys are stored in this page</p>
     <form id="loginForm">
-      <input id="password" type="password" autocomplete="current-password" placeholder="Dashboard-lösenord" required>
+      <input id="password" type="password" autocomplete="current-password" placeholder="Dashboard password" required>
       <label style="display:flex;align-items:center;gap:8px;margin:0 0 12px;color:var(--muted);font-size:13px">
         <input id="rememberDevice" type="checkbox" checked style="width:auto;margin:0">
-        Kom ihåg den här enheten i 30 dagar
+        Remember this device for 30 days
       </label>
-      <button id="loginButton" type="submit">Logga in</button>
+      <button id="loginButton" type="submit">Sign in</button>
     </form>
     <div id="loginError" class="error hidden"></div>
   </section>
 
   <section id="dashboardView" class="hidden">
-    <header class="hero">
-      <div id="heroArt" class="hero-art" aria-hidden="true"></div>
-      <div class="hero-inner">
-        <div class="hero-profile">
-          <img id="heroAvatar" class="hero-avatar" alt="Bergholm profilbild">
-          <div>
-            <div class="hero-eyebrow">Torn Progression Intelligence</div>
-            <div class="hero-name-row">
-              <h1 id="playerName" class="hero-name">BERGHOLM</h1>
-              <span id="heroPlayerId" class="hero-id">[3951204]</span>
-            </div>
-            <div id="playerMeta" class="hero-sub">Laddar…</div>
-            <div class="hero-actions">
-              <span id="pipelinePill" class="pill">…</span>
-              <button id="refreshButton" class="secondary" type="button">Uppdatera</button>
-            </div>
+    <header class="torn-header">
+      <div class="torn-brand">
+        <img class="torn-logo" src="https://www.torn.com/images/v2/torn_logo/regular/desktop/logo@2x.png" alt="TORN">
+        <div class="app-title">Progression Dashboard</div>
+      </div>
+      <div class="player-summary">
+        <img id="heroAvatar" class="player-avatar" alt="Bergholm profile">
+        <div class="player-copy">
+          <div class="player-name-row">
+            <strong id="playerName">Bergholm</strong>
+            <span id="heroPlayerId">[3951204]</span>
           </div>
-        </div>
-        <div class="hero-kpis">
-          <div class="hero-kpi"><div class="label">Total BS</div><div id="heroStats" class="hero-value">—</div><div id="heroStatsDelta" class="hero-note">—</div></div>
-          <div class="hero-kpi"><div class="label">Net worth</div><div id="heroNetworth" class="hero-value">—</div><div id="heroNetworthDelta" class="hero-note">—</div></div>
-          <div class="hero-kpi"><div class="label">Crime target</div><div id="heroCrime" class="hero-value">—</div><div class="hero-note">Crime 2.0</div></div>
-          <div class="hero-kpi"><div class="label">Ranked war</div><div id="heroWar" class="hero-value">—</div><div id="heroWarNote" class="hero-note">—</div></div>
+          <div id="playerMeta" class="sub">Loading…</div>
         </div>
       </div>
+      <div class="header-actions">
+        <span id="pipelinePill" class="pill">…</span>
+        <button id="refreshButton" class="secondary" type="button">Refresh</button>
+      </div>
     </header>
+
+    <section class="torn-banner">
+      <div class="banner-content">
+        <div class="banner-stat"><span>Total Battle Stats</span><strong id="heroStats">—</strong><small id="heroStatsDelta">—</small></div>
+        <div class="banner-stat"><span>Net Worth</span><strong id="heroNetworth">—</strong><small id="heroNetworthDelta">—</small></div>
+        <div class="banner-stat"><span>Crime Target</span><strong id="heroCrime">—</strong><small>Crime 2.0</small></div>
+        <div class="banner-stat"><span>Ranked War</span><strong id="heroWar">—</strong><small id="heroWarNote">—</small></div>
+      </div>
+    </section>
 
     <div class="grid">
       <div class="kpi"><div class="label">Total stats</div><div id="kpiStats" class="value">—</div><div id="kpiStatsDelta" class="small">—</div></div>
@@ -262,28 +390,28 @@
       <div class="status-chip"><span class="label">Life</span><b id="barLife">—</b></div>
     </div>
 
-    <div class="card">
-      <h2>Vad gör jag nu?</h2>
-      <div class="section-note sub">Prioriteras automatiskt från färsk Torn-data. Råd med medium confidence är heuristik, inte hårda regler.</div>
+    <div class="card action-center-card">
+      <h2>Action Center</h2>
+      <div class="section-note sub">Automatically prioritized from fresh Torn data. Medium-confidence advice is heuristic, not a hard rule.</div>
       <div id="actionRows" class="action-list"></div>
     </div>
 
     <div class="card">
       <div class="top" style="margin:0 0 10px">
         <div>
-          <h2 style="margin:0">Spelaktivitet</h2>
-          <div id="activityMeta" class="sub">Bygger beteendeprofil…</div>
+          <h2 style="margin:0">Game Activity</h2>
+          <div id="activityMeta" class="sub">Building activity profile…</div>
         </div>
       </div>
       <div id="activitySignals" class="signal-grid"></div>
       <div class="section-note sub" style="margin:10px 0 0">
-        Aktivitet är en sekundär signal. Generell kontotillväxt kan väga högre än gamla vanor.
+        Activity is a secondary signal. General account growth can outweigh existing habits.
       </div>
     </div>
 
     <div class="card">
       <div class="top" style="margin:0 0 12px">
-        <div><h2 style="margin:0">Trender</h2><div id="trendPeriod" class="sub">Sedan tracking startade</div></div>
+        <div><h2 style="margin:0">Trends</h2><div id="trendPeriod" class="sub">Since tracking started</div></div>
       </div>
       <div id="trendGrid" class="trend-grid"></div>
     </div>
@@ -294,18 +422,18 @@
     </div>
 
     <div class="card">
-      <h2>Nästa investering</h2>
+      <h2>Investment Strategy</h2>
       <div id="investmentRows"></div>
     </div>
 
     <div class="card">
-      <h2>Stock benefits · kontorelevans</h2>
-      <div class="section-note sub">Monetär ROI och progression hålls separata. Ingen låtsasdollar-värdering av energy, nerve, happy, racing osv.</div>
+      <h2>Stock Benefits · Account Relevance</h2>
+      <div class="section-note sub">Monetary ROI and progression value are kept separate. Energy, nerve, happy, racing and similar benefits are not assigned fake dollar values.</div>
       <div id="progressionStockRows"></div>
       <details>
-        <summary>Visa alla icke-monetära stock benefits</summary>
+        <summary>Show all non-monetary stock benefits</summary>
         <table>
-          <thead><tr><th>Stock</th><th>Benefit</th><th class="right">Kostnad</th><th class="right">Relevans</th><th class="right">Aktivitet</th></tr></thead>
+          <thead><tr><th>Stock</th><th>Benefit</th><th class="right">Cost</th><th class="right">Relevance</th><th class="right">Activity</th></tr></thead>
           <tbody id="relevanceRows"></tbody>
         </table>
       </details>
@@ -338,13 +466,13 @@
     </div>
 
     <div class="card">
-      <h2>Datakvalitet</h2>
+      <h2>Data Quality</h2>
       <div id="qualityRows"></div>
     </div>
 
     <div class="footer">
-      <div id="generatedAt" class="sub">—</div>
-      <button id="logoutButton" class="secondary" type="button">Logga ut</button>
+      <div><div id="generatedAt" class="sub">—</div><div class="sub legal-note">Unofficial personal dashboard · TORN imagery © TORN LTD</div></div>
+      <button id="logoutButton" class="secondary" type="button">Sign out</button>
     </div>
   </section>
 </main>
@@ -355,7 +483,6 @@
 
   const API = "https://sdczpggpsrikncdzpsie.supabase.co/functions/v1/torn-dashboard";
   const AVATAR_URL = "./assets/bergholm-avatar.webp";
-  const HERO_URL = "./assets/bergholm-hero.webp";
   const SESSION_KEY = "tornDashSession";
   const REMEMBER_KEY = "tornDashRememberedSession";
   const $ = (id) => document.getElementById(id);
@@ -380,7 +507,7 @@
   function dt(v) {
     if (!v) return "—";
     const d = new Date(v); if (Number.isNaN(d.getTime())) return "—";
-    return new Intl.DateTimeFormat("sv-SE", {
+    return new Intl.DateTimeFormat("en-GB", {
       timeZone:"Europe/Stockholm", dateStyle:"short", timeStyle:"short"
     }).format(d);
   }
@@ -390,11 +517,11 @@
     if (!Number.isFinite(ms)) return "";
     const mins = Math.round(Math.abs(ms) / 60000);
     if (ms > 0) {
-      if (mins < 60) return "om " + mins + " min";
-      return "om " + Math.floor(mins/60) + "h " + (mins%60) + "m";
+      if (mins < 60) return "in " + mins + " min";
+      return "in " + Math.floor(mins/60) + "h " + (mins%60) + "m";
     }
-    if (mins < 60) return "för " + mins + " min sedan";
-    return "för " + Math.floor(mins/60) + "h sedan";
+    if (mins < 60) return mins + " min ago";
+    return Math.floor(mins/60) + "h ago";
   }
   function row(label, value, cls="") {
     return '<div class="row"><span>' + esc(label) + '</span><b class="' + esc(cls) + '">' + value + '</b></div>';
@@ -406,17 +533,17 @@
   }
   function durationLabel(hours) {
     const h=Number(hours);
-    if (!Number.isFinite(h) || h<0) return "Sedan tracking startade";
-    if (h>=168) return "Senaste 7 dagarna";
-    if (h>=48) return "Sedan tracking startade · " + Math.floor(h/24) + " dagar";
-    if (h>=1) return "Sedan tracking startade · " + Math.floor(h) + "h " + Math.round((h%1)*60) + "m";
-    return "Sedan tracking startade · " + Math.round(h*60) + " min";
+    if (!Number.isFinite(h) || h<0) return "Since tracking started";
+    if (h>=168) return "Last 7 days";
+    if (h>=48) return "Since tracking started · " + Math.floor(h/24) + " dagar";
+    if (h>=1) return "Since tracking started · " + Math.floor(h) + "h " + Math.round((h%1)*60) + "m";
+    return "Since tracking started · " + Math.round(h*60) + " min";
   }
   function sparkline(series) {
     const pts=(Array.isArray(series)?series:[])
       .map(x=>({v:Number(x?.v),t:x?.t}))
       .filter(x=>Number.isFinite(x.v));
-    if (!pts.length) return '<div class="small" style="margin-top:12px">Ingen historik ännu</div>';
+    if (!pts.length) return '<div class="small" style="margin-top:12px">No history yet</div>';
     const w=260,h=62,p=5;
     let min=Math.min(...pts.map(x=>x.v)), max=Math.max(...pts.map(x=>x.v));
     if (max===min) { max=min+1; }
@@ -492,11 +619,10 @@
     const trends=d.trends||{};
     const pipeline=d.pipeline?.pipeline_status||"UNKNOWN";
 
-    $("heroArt").style.backgroundImage = 'url("' + HERO_URL + '")';
     $("heroAvatar").src = AVATAR_URL;
     $("playerName").textContent = (p.name || "Bergholm").toUpperCase();
     $("heroPlayerId").textContent = "[" + (p.player_id ?? 3951204) + "]";
-    $("playerMeta").textContent = "Level " + (p.level ?? "—") + " · uppdaterad " + dt(p.captured_at);
+    $("playerMeta").textContent = "Level " + (p.level ?? "—") + " · updated " + dt(p.captured_at);
 
     const heroCrimeTarget = crimes
       .filter(x => Number(x.skill) < 100)
@@ -513,7 +639,7 @@
       heroCrimeTarget.crime_name
         ? heroCrimeTarget.crime_name + " " + num(heroCrimeTarget.skill)
         : "—";
-    $("heroWar").textContent = war.opponent || "Ingen";
+    $("heroWar").textContent = war.opponent || "None";
     $("heroWarNote").textContent =
       war.status ? String(war.status).toUpperCase() + (war.starts_at ? " · " + relativeTime(war.starts_at) : "") : "—";
 
@@ -539,7 +665,7 @@
 
     const activityHours=Number(activity.coverage_hours);
     $("activityMeta").textContent =
-      (Number.isFinite(activityHours) ? activityHours.toFixed(1)+"h aktivitet" : "Aktivitet samlas in") +
+      (Number.isFinite(activityHours) ? activityHours.toFixed(1)+"h activity" : "Activity is being collected") +
       " · confidence " + String(activity.confidence||"—").toUpperCase();
 
     const sig=activity.signals||{};
@@ -554,12 +680,12 @@
         num(sig.crime?.attempts)+" crimes · "+num(sig.crime?.alcohol_uses)+" alcohol · "+num(sig.crime?.nerve_refills)+" nerve refills") +
       signalCard("Battle / energy",sig.battle_energy,
         num(sig.battle_energy?.gym_trains)+" gym · "+num(sig.battle_energy?.xanax_uses)+" xanax · "+num(sig.battle_energy?.energy_refills)+" energy refills") +
-      signalCard("Travel",sig.travel,num(sig.travel?.departures)+" resor") +
+      signalCard("Travel",sig.travel,num(sig.travel?.departures)+" trips") +
       signalCard("Trading",sig.trading,num(sig.trading?.bazaar_sales)+" bazaar sales") +
       signalCard("Missions",sig.missions,num(sig.missions?.completed)+" completed") +
       signalCard("Racing",sig.racing,num(sig.racing?.finishes)+" races") +
       signalCard("Coding",sig.coding,num(sig.coding?.virus_completes)+" virus completes") +
-      signalCard("Happy",sig.happy,num(sig.happy?.events)+" relevanta events");
+      signalCard("Happy",sig.happy,num(sig.happy?.events)+" relevant events");
 
     $("trendPeriod").textContent=durationLabel(trends.tracking_hours);
     const tb=trends.battle||{}, tn=trends.networth||{}, tc=trends.crime||{};
@@ -579,7 +705,7 @@
         '<span class="tag">'+esc(a.confidence||"")+'</span></div></div>' +
         (time ? '<div class="small" style="margin-top:4px">'+esc(time)+' · '+esc(dt(a.meta.starts_at))+'</div>' : '') +
         '<div class="action-detail">'+esc(a.detail||"")+'</div></div>';
-    }).join("") || '<div class="small">Inga aktuella rekommendationer.</div>';
+    }).join("") || '<div class="small">No current recommendations.</div>';
 
     const statDelta=(value,delta) =>
       num(value) + (delta !== null && delta !== undefined
@@ -596,16 +722,16 @@
     const frontier=Array.isArray(strategy.frontier)?strategy.frontier:[];
     const frontierText=frontier.map(x=>x.ticker).join(" → ");
     $("investmentRows").innerHTML =
-      row("Nästa köp", esc((bridge.ticker||"—") + (bridge.stock_name ? " · " + bridge.stock_name : ""))) +
-      row("Tillgängligt efter bankmognad", money(strategy.deployable_after_bank_maturity)) +
-      row("Bank mognar", esc(dt(strategy.bank_matures_at))) +
-      row("Bridge-kostnad", money(bridge.capital_needed_for_next_benefit)) +
-      row("Bridge-ROI / år", pct(bridge.marginal_annual_roi)) +
+      row("Next buy", esc((bridge.ticker||"—") + (bridge.stock_name ? " · " + bridge.stock_name : ""))) +
+      row("Available after bank maturity", money(strategy.deployable_after_bank_maturity)) +
+      row("Bank matures", esc(dt(strategy.bank_matures_at))) +
+      row("Bridge cost", money(bridge.capital_needed_for_next_benefit)) +
+      row("Bridge ROI / year", pct(bridge.marginal_annual_roi)) +
       row("Bridge-benefit", esc(bridge.benefit_description||"—")) +
-      row("Långsiktigt mål", esc((longTerm.ticker||"—") + (longTerm.stock_name ? " · " + longTerm.stock_name : ""))) +
-      row("FHG-gap efter bankvinst", money(strategy.capital_gap_to_long_term)) +
-      row("Kapitalstege", esc(frontierText||"—")) +
-      row("Status", ready.stock_recommendation_ready ? "READY" : "VÄNTAR", ready.stock_recommendation_ready?"good":"warn");
+      row("Long-term target", esc((longTerm.ticker||"—") + (longTerm.stock_name ? " · " + longTerm.stock_name : ""))) +
+      row("Gap to FHG after bank profit", money(strategy.capital_gap_to_long_term)) +
+      row("Capital ladder", esc(frontierText||"—")) +
+      row("Status", ready.stock_recommendation_ready ? "READY" : "WAITING", ready.stock_recommendation_ready?"good":"warn");
 
     $("progressionStockRows").innerHTML = progressionStocks.map(s =>
       row(
@@ -617,7 +743,7 @@
       '<div class="small" style="margin:-4px 0 8px">' + esc(s.relevance_reason||"") +
       (s.activity_confidence ? ' · Activity confidence ' + esc(String(s.activity_confidence).toUpperCase()) : '') +
       '</div>'
-    ).join("") || '<div class="small">Inga högt relevanta progression-block just nu.</div>';
+    ).join("") || '<div class="small">No high-relevance progression blocks right now.</div>';
 
     $("relevanceRows").innerHTML = stockRelevance.map(s =>
       '<tr><td><b>'+esc(s.ticker||"—")+'</b></td>' +
@@ -628,20 +754,20 @@
     ).join("");
 
     $("piRows").innerHTML =
-      row("Nuvarande hyra / 100d", money(prop.actual_100_day_equivalent)) +
-      row("Marknadsmedian / 100d", money(prop.market_rent_median_100d)) +
-      row("Jämförbart köp median", money(prop.comparable_buy_median)) +
-      row("Dagar kvar", num(prop.days_remaining)) +
+      row("Current rent / 100d", money(prop.actual_100_day_equivalent)) +
+      row("Market median / 100d", money(prop.market_rent_median_100d)) +
+      row("Comparable buy median", money(prop.comparable_buy_median)) +
+      row("Days remaining", num(prop.days_remaining)) +
       row("Rent-saved yield", pct(pi.rent_saved_yield_vs_comparable_median)) +
-      row("Dynamisk break-even / 100d", money(pivs.dynamic_pi_break_even_rent_100d)) +
-      row("PI vs bästa stock", ready.pi_recommendation_ready ? esc(pivs.comparison_status||"READY") : "VÄNTAR", ready.pi_recommendation_ready?"good":"warn");
+      row("Dynamic break-even / 100d", money(pivs.dynamic_pi_break_even_rent_100d)) +
+      row("PI vs best stock", ready.pi_recommendation_ready ? esc(pivs.comparison_status||"READY") : "WAITING", ready.pi_recommendation_ready?"good":"warn");
 
     const eduWhen=edu.ends_at ? relativeTime(edu.ends_at) : "";
     const warWhen=war.starts_at ? relativeTime(war.starts_at) : "";
     $("progressionRows").innerHTML =
       row("Education", esc(edu.course_name||"—")) +
-      row("Slutar", esc(dt(edu.ends_at) + (eduWhen ? " · " + eduWhen : ""))) +
-      row("Merits lediga", num(merits.available)) +
+      row("Ends", esc(dt(edu.ends_at) + (eduWhen ? " · " + eduWhen : ""))) +
+      row("Available merits", num(merits.available)) +
       row("War", esc((war.status||"—") + " · " + (war.opponent||"—"))) +
       (war.starts_at ? row("War start", esc(dt(war.starts_at) + (warWhen ? " · " + warWhen : ""))) : "");
 
@@ -655,14 +781,14 @@
     ).join("");
 
     let quality =
-      row("Stock-rekommendation", ready.stock_recommendation_ready?"READY":"VÄNTAR", ready.stock_recommendation_ready?"good":"warn") +
-      row("PI-rekommendation", ready.pi_recommendation_ready?"READY":"VÄNTAR", ready.pi_recommendation_ready?"good":"warn");
+      row("Stock recommendation", ready.stock_recommendation_ready?"READY":"WAITING", ready.stock_recommendation_ready?"good":"warn") +
+      row("PI recommendation", ready.pi_recommendation_ready?"READY":"WAITING", ready.pi_recommendation_ready?"good":"warn");
     quality += issues.map(i =>
       row(i.issue_key||"issue", esc(i.severity||"INFO"), i.severity==="ERROR"?"bad":i.severity==="WARN"?"warn":"small")
     ).join("");
     $("qualityRows").innerHTML=quality;
 
-    $("generatedAt").textContent="Genererad " + dt(d.generated_at);
+    $("generatedAt").textContent="Generated " + dt(d.generated_at);
     showDashboard();
   }
 
@@ -685,9 +811,9 @@
     } catch (e) {
       if (e.status===401) {
         clearTokens();
-        showLogin("Sessionen har gått ut. Logga in igen.");
+        showLogin("Session expired. Sign in again.");
       } else {
-        $("generatedAt").textContent="Kunde inte uppdatera: " + (e.message||"fel");
+        $("generatedAt").textContent="Could not refresh: " + (e.message||"error");
         showDashboard();
       }
     } finally {
@@ -709,7 +835,7 @@
       $("password").value="";
       await loadData();
     } catch (e) {
-      showLogin(e.status===401 ? "Fel lösenord." : "Kunde inte logga in.");
+      showLogin(e.status===401 ? "Incorrect password." : "Could not sign in.");
     } finally {
       btn.disabled=false;
     }
