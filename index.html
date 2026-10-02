@@ -303,7 +303,7 @@
     const p=d.profile||{}, b=d.battle_stats?.current||{}, d24=d.battle_stats?.delta_24h||{};
     const g=d.gym||{}, bars=d.bars||{}, e=d.economy||{}, prop=d.property||{}, pi=d.pi_economics||{};
     const edu=d.education||{}, merits=d.merits||{}, war=d.war||{}, ready=d.readiness||{};
-    const best=d.best_stock_candidate||{}, pivs=d.pi_vs_best_stock||{};
+    const best=d.best_stock_candidate||{}, strategy=d.stock_strategy||{}, pivs=d.pi_vs_best_stock||{};
     const issues=Array.isArray(d.issues)?d.issues:[];
     const crimes=Array.isArray(d.crimes)?d.crimes:[];
     const stocks=Array.isArray(d.stocks)?d.stocks:[];
@@ -364,18 +364,20 @@
       row("Speed", statDelta(b.speed,d24.speed)) +
       row("Dexterity", statDelta(b.dexterity,d24.dexterity));
 
+    const bridge=strategy.bridge||{};
+    const longTerm=strategy.long_term_target||best||{};
+    const frontier=Array.isArray(strategy.frontier)?strategy.frontier:[];
+    const frontierText=frontier.map(x=>x.ticker).join(" → ");
     $("investmentRows").innerHTML =
-      row("Stock-kandidat", esc((best.ticker||"—") + (best.stock_name ? " · " + best.stock_name : ""))) +
-      row("Aktier", num(best.shares_current) + " / " + num(best.next_total_share_threshold)) +
-      row("Saknas", num(best.shares_needed_for_next_benefit) + " aktier") +
-      row("Pris / aktie", money(best.price_per_share)) +
-      row("Benefit", esc(best.benefit_description||"—")) +
-      row("Benefitvärde / cykel", money(best.value_per_cycle_per_increment)) +
-      row("Frekvens", best.frequency_days ? "var " + num(best.frequency_days) + ":e dag" : "—") +
-      row("Estimerat årsvärde", money(best.annual_value_per_increment)) +
-      row("Kapital som behövs", money(best.capital_needed_for_next_benefit)) +
-      row("Marginal-ROI / år", pct(best.marginal_annual_roi)) +
-      row("Värderingssäkerhet", esc(best.valuation_confidence||"—")) +
+      row("Nästa köp", esc((bridge.ticker||"—") + (bridge.stock_name ? " · " + bridge.stock_name : ""))) +
+      row("Tillgängligt efter bankmognad", money(strategy.deployable_after_bank_maturity)) +
+      row("Bank mognar", esc(dt(strategy.bank_matures_at))) +
+      row("Bridge-kostnad", money(bridge.capital_needed_for_next_benefit)) +
+      row("Bridge-ROI / år", pct(bridge.marginal_annual_roi)) +
+      row("Bridge-benefit", esc(bridge.benefit_description||"—")) +
+      row("Långsiktigt mål", esc((longTerm.ticker||"—") + (longTerm.stock_name ? " · " + longTerm.stock_name : ""))) +
+      row("FHG-gap efter bankvinst", money(strategy.capital_gap_to_long_term)) +
+      row("Kapitalstege", esc(frontierText||"—")) +
       row("Status", ready.stock_recommendation_ready ? "READY" : "VÄNTAR", ready.stock_recommendation_ready?"good":"warn");
 
     $("piRows").innerHTML =
