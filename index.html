@@ -83,6 +83,10 @@
     <p class="muted">Privat dashboard · inga API-nycklar lagras i den här sidan</p>
     <form id="loginForm">
       <input id="password" type="password" autocomplete="current-password" placeholder="Dashboard-lösenord" required>
+      <label style="display:flex;align-items:center;gap:8px;margin:0 0 12px;color:var(--muted);font-size:13px">
+        <input id="rememberDevice" type="checkbox" checked style="width:auto;margin:0">
+        Kom ihåg den här enheten i 30 dagar
+      </label>
       <button id="loginButton" type="submit">Logga in</button>
     </form>
     <div id="loginError" class="error hidden"></div>
@@ -180,6 +184,7 @@
 
   const API = "https://sdczpggpsrikncdzpsie.supabase.co/functions/v1/torn-dashboard";
   const SESSION_KEY = "tornDashSession";
+  const REMEMBER_KEY = "tornDashRememberedSession";
   const $ = (id) => document.getElementById(id);
 
   function esc(v) {
@@ -419,8 +424,16 @@
     showDashboard();
   }
 
+  function getToken() {
+    return localStorage.getItem(REMEMBER_KEY) || sessionStorage.getItem(SESSION_KEY);
+  }
+  function clearTokens() {
+    localStorage.removeItem(REMEMBER_KEY);
+    sessionStorage.removeItem(SESSION_KEY);
+  }
+
   async function loadData() {
-    const token=sessionStorage.getItem(SESSION_KEY);
+    const token=getToken();
     if (!token) return showLogin();
     const btn=$("refreshButton");
     btn.disabled=true;
@@ -429,7 +442,7 @@
       render(r.data||{});
     } catch (e) {
       if (e.status===401) {
-        sessionStorage.removeItem(SESSION_KEY);
+        clearTokens();
         showLogin("Sessionen har gått ut. Logga in igen.");
       } else {
         $("generatedAt").textContent="Kunde inte uppdatera: " + (e.message||"fel");
@@ -446,8 +459,11 @@
     btn.disabled=true;
     $("loginError").classList.add("hidden");
     try {
-      const r=await api({action:"login",password:$("password").value});
-      sessionStorage.setItem(SESSION_KEY,r.token);
+      const remember=$("rememberDevice").checked;
+      const r=await api({action:"login",password:$("password").value,remember});
+      clearTokens();
+      if (remember) localStorage.setItem(REMEMBER_KEY,r.token);
+      else sessionStorage.setItem(SESSION_KEY,r.token);
       $("password").value="";
       await loadData();
     } catch (e) {
@@ -459,13 +475,13 @@
 
   $("refreshButton").addEventListener("click",loadData);
   $("logoutButton").addEventListener("click",() => {
-    sessionStorage.removeItem(SESSION_KEY);
+    clearTokens();
     showLogin();
   });
 
-  if (sessionStorage.getItem(SESSION_KEY)) loadData(); else showLogin();
+  if (getToken()) loadData(); else showLogin();
   setInterval(() => {
-    if (sessionStorage.getItem(SESSION_KEY) && !document.hidden) loadData();
+    if (getToken() && !document.hidden) loadData();
   }, 10*60*1000);
 })();
 </script>
