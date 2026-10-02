@@ -51,6 +51,11 @@
     summary{cursor:pointer;color:var(--accent2);font-size:13px}
     .rel-high{color:var(--good)} .rel-medium{color:var(--accent2)} .rel-conditional{color:var(--warn)}
     .rel-low,.rel-none,.rel-owned{color:var(--muted)}
+    .signal-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+    .signal{background:var(--card2);border:1px solid var(--line);border-radius:11px;padding:9px 10px}
+    .signal b{display:block;margin-top:3px;font-size:13px}
+    .sig-strong{color:var(--good)} .sig-moderate{color:var(--accent2)}
+    .sig-weak{color:var(--warn)} .sig-none{color:var(--muted)}
     .footer{margin-top:18px;display:flex;justify-content:space-between;gap:12px;align-items:center}
     .action-list{display:grid;gap:9px}
     .action-item{background:var(--card2);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:12px;padding:11px 12px}
@@ -128,6 +133,19 @@
     </div>
 
     <div class="card">
+      <div class="top" style="margin:0 0 10px">
+        <div>
+          <h2 style="margin:0">Spelaktivitet</h2>
+          <div id="activityMeta" class="sub">Bygger beteendeprofil…</div>
+        </div>
+      </div>
+      <div id="activitySignals" class="signal-grid"></div>
+      <div class="section-note sub" style="margin:10px 0 0">
+        Aktivitet är en sekundär signal. Generell kontotillväxt kan väga högre än gamla vanor.
+      </div>
+    </div>
+
+    <div class="card">
       <div class="top" style="margin:0 0 12px">
         <div><h2 style="margin:0">Trender</h2><div id="trendPeriod" class="sub">Sedan tracking startade</div></div>
       </div>
@@ -151,7 +169,7 @@
       <details>
         <summary>Visa alla icke-monetära stock benefits</summary>
         <table>
-          <thead><tr><th>Stock</th><th>Benefit</th><th class="right">Kostnad</th><th class="right">Relevans</th></tr></thead>
+          <thead><tr><th>Stock</th><th>Benefit</th><th class="right">Kostnad</th><th class="right">Relevans</th><th class="right">Aktivitet</th></tr></thead>
           <tbody id="relevanceRows"></tbody>
         </table>
       </details>
@@ -332,6 +350,7 @@
     const actions=Array.isArray(d.actions)?d.actions:[];
     const progressionStocks=Array.isArray(d.stock_progression_shortlist)?d.stock_progression_shortlist:[];
     const stockRelevance=Array.isArray(d.stock_account_relevance)?d.stock_account_relevance:[];
+    const activity=d.activity_profile||{};
     const trends=d.trends||{};
     const pipeline=d.pipeline?.pipeline_status||"UNKNOWN";
 
@@ -357,6 +376,30 @@
     $("barNerve").textContent=num(bars.nerve_current)+" / "+num(bars.nerve_max);
     $("barHappy").textContent=num(bars.happy_current)+" / "+num(bars.happy_max);
     $("barLife").textContent=num(bars.life_current)+" / "+num(bars.life_max);
+
+    const activityHours=Number(activity.coverage_hours);
+    $("activityMeta").textContent =
+      (Number.isFinite(activityHours) ? activityHours.toFixed(1)+"h aktivitet" : "Aktivitet samlas in") +
+      " · confidence " + String(activity.confidence||"—").toUpperCase();
+
+    const sig=activity.signals||{};
+    const signalCard=(label,obj,detail) => {
+      const support=String(obj?.support||"none").toLowerCase();
+      return '<div class="signal"><span class="label">'+esc(label)+'</span>' +
+        '<b class="sig-'+esc(support)+'">'+esc(support.toUpperCase())+'</b>' +
+        '<div class="small">'+esc(detail)+'</div></div>';
+    };
+    $("activitySignals").innerHTML =
+      signalCard("Crime / nerve",sig.crime,
+        num(sig.crime?.attempts)+" crimes · "+num(sig.crime?.alcohol_uses)+" alcohol · "+num(sig.crime?.nerve_refills)+" nerve refills") +
+      signalCard("Battle / energy",sig.battle_energy,
+        num(sig.battle_energy?.gym_trains)+" gym · "+num(sig.battle_energy?.xanax_uses)+" xanax · "+num(sig.battle_energy?.energy_refills)+" energy refills") +
+      signalCard("Travel",sig.travel,num(sig.travel?.departures)+" resor") +
+      signalCard("Trading",sig.trading,num(sig.trading?.bazaar_sales)+" bazaar sales") +
+      signalCard("Missions",sig.missions,num(sig.missions?.completed)+" completed") +
+      signalCard("Racing",sig.racing,num(sig.racing?.finishes)+" races") +
+      signalCard("Coding",sig.coding,num(sig.coding?.virus_completes)+" virus completes") +
+      signalCard("Happy",sig.happy,num(sig.happy?.events)+" relevanta events");
 
     $("trendPeriod").textContent=durationLabel(trends.tracking_hours);
     const tb=trends.battle||{}, tn=trends.networth||{}, tc=trends.crime||{};
@@ -407,16 +450,21 @@
     $("progressionStockRows").innerHTML = progressionStocks.map(s =>
       row(
         (s.ticker||"—") + " · " + (s.benefit_description||""),
-        money(s.capital_needed_for_next_benefit) + ' <span class="small rel-' + esc(s.account_relevance||"") + '">' + esc(String(s.account_relevance||"").toUpperCase()) + '</span>'
+        money(s.capital_needed_for_next_benefit) +
+        ' <span class="small rel-' + esc(s.account_relevance||"") + '">' + esc(String(s.account_relevance||"").toUpperCase()) + '</span>' +
+        ' <span class="small">· activity ' + esc(String(s.activity_support||"—").toUpperCase()) + '</span>'
       ) +
-      '<div class="small" style="margin:-4px 0 8px">' + esc(s.relevance_reason||"") + '</div>'
+      '<div class="small" style="margin:-4px 0 8px">' + esc(s.relevance_reason||"") +
+      (s.activity_confidence ? ' · Activity confidence ' + esc(String(s.activity_confidence).toUpperCase()) : '') +
+      '</div>'
     ).join("") || '<div class="small">Inga högt relevanta progression-block just nu.</div>';
 
     $("relevanceRows").innerHTML = stockRelevance.map(s =>
       '<tr><td><b>'+esc(s.ticker||"—")+'</b></td>' +
       '<td>'+esc(s.benefit_description||"—")+'</td>' +
       '<td class="right">'+money(s.capital_needed_for_next_benefit)+'</td>' +
-      '<td class="right rel-'+esc(s.account_relevance||"")+'">'+esc(String(s.account_relevance||"—").toUpperCase())+'</td></tr>'
+      '<td class="right rel-'+esc(s.account_relevance||"")+'">'+esc(String(s.account_relevance||"—").toUpperCase())+'</td>' +
+      '<td class="right">'+esc(String(s.activity_support||"—").toUpperCase())+'</td></tr>'
     ).join("");
 
     $("piRows").innerHTML =
