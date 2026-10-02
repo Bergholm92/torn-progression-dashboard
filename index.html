@@ -58,7 +58,22 @@
     .action-tags{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
     .tag{font-size:10px;border:1px solid var(--line);border-radius:999px;padding:3px 6px;color:var(--muted);white-space:nowrap}
     .tag.now{color:var(--bad)} .tag.soon{color:var(--warn)} .tag.next{color:var(--accent2)} .tag.watch{color:var(--good)}
-    @media(min-width:640px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+    .status-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 10px}
+    .status-chip{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:9px 10px;text-align:center}
+    .status-chip b{display:block;font-size:14px;margin-top:2px}
+    .trend-grid{display:grid;grid-template-columns:1fr;gap:9px}
+    .trend-card{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:11px}
+    .trend-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+    .trend-value{font-size:17px;font-weight:750}
+    .trend-delta{font-size:12px;margin-top:2px}
+    .spark{width:100%;height:62px;margin-top:8px;display:block}
+    .spark-line{fill:none;stroke:var(--accent);stroke-width:2;vector-effect:non-scaling-stroke}
+    .spark-area{fill:rgba(119,167,255,.10)}
+    .spark-base{stroke:var(--line);stroke-width:1;vector-effect:non-scaling-stroke}
+    @media(min-width:640px){
+      .grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+      .trend-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+    }
   </style>
 </head>
 <body>
@@ -92,10 +107,23 @@
       <div class="kpi"><div class="label">Cash</div><div id="kpiCash" class="value">—</div><div id="kpiBank" class="small">—</div></div>
     </div>
 
+    <div class="status-strip">
+      <div class="status-chip"><span class="label">Nerve</span><b id="barNerve">—</b></div>
+      <div class="status-chip"><span class="label">Happy</span><b id="barHappy">—</b></div>
+      <div class="status-chip"><span class="label">Life</span><b id="barLife">—</b></div>
+    </div>
+
     <div class="card">
       <h2>Vad gör jag nu?</h2>
       <div class="section-note sub">Prioriteras automatiskt från färsk Torn-data. Råd med medium confidence är heuristik, inte hårda regler.</div>
       <div id="actionRows" class="action-list"></div>
+    </div>
+
+    <div class="card">
+      <div class="top" style="margin:0 0 12px">
+        <div><h2 style="margin:0">Trender</h2><div id="trendPeriod" class="sub">Sedan tracking startade</div></div>
+      </div>
+      <div id="trendGrid" class="trend-grid"></div>
     </div>
 
     <div class="card">
@@ -193,6 +221,49 @@
   function row(label, value, cls="") {
     return '<div class="row"><span>' + esc(label) + '</span><b class="' + esc(cls) + '">' + value + '</b></div>';
   }
+  function signed(v, formatter=num) {
+    const n=Number(v);
+    if (!Number.isFinite(n)) return "—";
+    return (n>0?"+":"") + formatter(n);
+  }
+  function durationLabel(hours) {
+    const h=Number(hours);
+    if (!Number.isFinite(h) || h<0) return "Sedan tracking startade";
+    if (h>=168) return "Senaste 7 dagarna";
+    if (h>=48) return "Sedan tracking startade · " + Math.floor(h/24) + " dagar";
+    if (h>=1) return "Sedan tracking startade · " + Math.floor(h) + "h " + Math.round((h%1)*60) + "m";
+    return "Sedan tracking startade · " + Math.round(h*60) + " min";
+  }
+  function sparkline(series) {
+    const pts=(Array.isArray(series)?series:[])
+      .map(x=>({v:Number(x?.v),t:x?.t}))
+      .filter(x=>Number.isFinite(x.v));
+    if (!pts.length) return '<div class="small" style="margin-top:12px">Ingen historik ännu</div>';
+    const w=260,h=62,p=5;
+    let min=Math.min(...pts.map(x=>x.v)), max=Math.max(...pts.map(x=>x.v));
+    if (max===min) { max=min+1; }
+    const xy=pts.map((x,i)=>{
+      const px=pts.length===1?w/2:p+(i/(pts.length-1))*(w-2*p);
+      const py=h-p-((x.v-min)/(max-min))*(h-2*p);
+      return [px,py];
+    });
+    const line=xy.map(x=>x[0].toFixed(1)+","+x[1].toFixed(1)).join(" ");
+    const area=p+","+(h-p)+" "+line+" "+(w-p)+","+(h-p);
+    return '<svg class="spark" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none" aria-hidden="true">' +
+      '<line class="spark-base" x1="'+p+'" y1="'+(h-p)+'" x2="'+(w-p)+'" y2="'+(h-p)+'"></line>' +
+      '<polygon class="spark-area" points="'+area+'"></polygon>' +
+      '<polyline class="spark-line" points="'+line+'"></polyline></svg>';
+  }
+  function trendCard(title,current,delta,series,kind="num",subtitle="") {
+    const fmt=kind==="money"?money:num;
+    const deltaText=signed(delta,fmt);
+    const deltaClass=Number(delta)>0?"good":Number(delta)<0?"bad":"small";
+    return '<div class="trend-card"><div class="trend-head"><div><div class="label">'+esc(title)+'</div>' +
+      '<div class="trend-value">'+esc(fmt(current))+'</div>' +
+      (subtitle?'<div class="small">'+esc(subtitle)+'</div>':'') +
+      '</div><div class="trend-delta '+deltaClass+'">'+esc(deltaText)+'</div></div>' +
+      sparkline(series)+'</div>';
+  }
   function showLogin(message="") {
     $("dashboardView").classList.add("hidden");
     $("loginView").classList.remove("hidden");
@@ -230,13 +301,14 @@
 
   function render(d) {
     const p=d.profile||{}, b=d.battle_stats?.current||{}, d24=d.battle_stats?.delta_24h||{};
-    const g=d.gym||{}, e=d.economy||{}, prop=d.property||{}, pi=d.pi_economics||{};
+    const g=d.gym||{}, bars=d.bars||{}, e=d.economy||{}, prop=d.property||{}, pi=d.pi_economics||{};
     const edu=d.education||{}, merits=d.merits||{}, war=d.war||{}, ready=d.readiness||{};
     const best=d.best_stock_candidate||{}, pivs=d.pi_vs_best_stock||{};
     const issues=Array.isArray(d.issues)?d.issues:[];
     const crimes=Array.isArray(d.crimes)?d.crimes:[];
     const stocks=Array.isArray(d.stocks)?d.stocks:[];
     const actions=Array.isArray(d.actions)?d.actions:[];
+    const trends=d.trends||{};
     const pipeline=d.pipeline?.pipeline_status||"UNKNOWN";
 
     $("playerName").textContent = p.name || "Torn Progression";
@@ -254,6 +326,16 @@
     $("kpiStocks").textContent="Stocks " + money(e.stocks_value);
     $("kpiCash").textContent=money(e.cash);
     $("kpiBank").textContent="Bank " + money(e.bank_principal);
+    $("barNerve").textContent=num(bars.nerve_current)+" / "+num(bars.nerve_max);
+    $("barHappy").textContent=num(bars.happy_current)+" / "+num(bars.happy_max);
+    $("barLife").textContent=num(bars.life_current)+" / "+num(bars.life_max);
+
+    $("trendPeriod").textContent=durationLabel(trends.tracking_hours);
+    const tb=trends.battle||{}, tn=trends.networth||{}, tc=trends.crime||{};
+    $("trendGrid").innerHTML =
+      trendCard("Total battle stats",tb.last_value,tb.gain,tb.series,"num") +
+      trendCard("Net worth",tn.last_value,tn.gain,tn.series,"money") +
+      trendCard((tc.crime_name||"Crime")+" skill",tc.last_value,tc.gain,tc.series,"num","Crime 2.0");
 
     $("actionRows").innerHTML = actions.map(a => {
       const state=String(a.state||"").toLowerCase();
