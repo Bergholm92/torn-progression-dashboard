@@ -319,7 +319,11 @@
     pp.className="pill " + (pipeline==="OK"?"good":pipeline==="STALE"?"warn":"bad");
 
     $("kpiStats").textContent=num(b.total);
-    $("kpiStatsDelta").textContent="24h +" + num(d24.total);
+    const trackedBattle=d.trends?.battle||{};
+    $("kpiStatsDelta").textContent =
+      d24.total !== null && d24.total !== undefined
+        ? "24h " + signed(d24.total)
+        : "Tracking " + signed(trackedBattle.gain);
     $("kpiEnergy").textContent=num(g.energy_current) + " / " + num(g.energy_max);
     $("kpiGym").textContent=g.gym_name||"—";
     $("kpiNetworth").textContent=money(e.networth);
@@ -350,11 +354,15 @@
         '<div class="action-detail">'+esc(a.detail||"")+'</div></div>';
     }).join("") || '<div class="small">Inga aktuella rekommendationer.</div>';
 
+    const statDelta=(value,delta) =>
+      num(value) + (delta !== null && delta !== undefined
+        ? ' <span class="small">(' + esc(signed(delta)) + ' / 24h)</span>'
+        : '');
     $("battleRows").innerHTML =
-      row("Strength", num(b.strength) + ' <span class="small">(+ ' + num(d24.strength) + ')</span>') +
-      row("Defense", num(b.defense) + ' <span class="small">(+ ' + num(d24.defense) + ')</span>') +
-      row("Speed", num(b.speed) + ' <span class="small">(+ ' + num(d24.speed) + ')</span>') +
-      row("Dexterity", num(b.dexterity) + ' <span class="small">(+ ' + num(d24.dexterity) + ')</span>');
+      row("Strength", statDelta(b.strength,d24.strength)) +
+      row("Defense", statDelta(b.defense,d24.defense)) +
+      row("Speed", statDelta(b.speed,d24.speed)) +
+      row("Dexterity", statDelta(b.dexterity,d24.dexterity));
 
     $("investmentRows").innerHTML =
       row("Stock-kandidat", esc(best.ticker||"—")) +
