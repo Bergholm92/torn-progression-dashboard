@@ -653,6 +653,159 @@
       .overview-stat strong{font-size:14px}
     }
 
+
+    /* INFORMATION HIERARCHY PASS */
+    html{scroll-behavior:smooth}
+    .hud-bar{
+      grid-template-columns:auto 1fr auto;
+      padding:0 12px;
+    }
+    .hud-nav{
+      display:flex;
+      align-self:stretch;
+      justify-content:center;
+      gap:0;
+    }
+    .hud-nav a{
+      display:flex;
+      align-items:center;
+      padding:0 13px;
+      color:#858585;
+      text-decoration:none;
+      font-size:10px;
+      text-transform:uppercase;
+      letter-spacing:.055em;
+      border-bottom:2px solid transparent;
+    }
+    .hud-nav a:hover{
+      color:#ddd;
+      background:#1e1e1e;
+      border-bottom-color:#a62b2b;
+    }
+    .section-heading{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:10px;
+    }
+    .section-heading h2{margin-bottom:3px}
+    .section-badge{
+      font-size:9px;
+      line-height:1;
+      padding:5px 7px;
+      color:#8bc792;
+      background:#172019;
+      border:1px solid #2d5032;
+      border-radius:2px;
+    }
+    .account-status{
+      display:grid;
+      grid-template-columns:1.35fr .9fr;
+      margin-bottom:8px;
+      border:1px solid #303030;
+      background:#181818;
+    }
+    .resource-status,.finance-status{padding:11px 13px}
+    .finance-status{border-left:1px solid #303030}
+    .status-title{
+      margin-bottom:9px;
+      color:#888;
+      font-size:9px;
+      font-weight:700;
+      letter-spacing:.1em;
+      text-transform:uppercase;
+    }
+    .resource-row{
+      display:grid;
+      grid-template-columns:145px 1fr 110px;
+      gap:10px;
+      align-items:center;
+      min-height:31px;
+      padding:4px 0;
+      border-top:1px solid #252525;
+    }
+    .resource-row:first-of-type{border-top:0}
+    .resource-meta{
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+      align-items:baseline;
+    }
+    .resource-meta span{
+      color:#aaa;
+      font-size:10px;
+      text-transform:uppercase;
+    }
+    .resource-meta strong{color:#eee;font-size:12px}
+    .resource-row small{
+      text-align:right;
+      color:#666;
+      font-size:9px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .resource-bar{
+      height:7px;
+      overflow:hidden;
+      border:1px solid #333;
+      background:#0f0f0f;
+    }
+    .resource-bar i{
+      display:block;
+      width:0;
+      height:100%;
+      background:linear-gradient(90deg,#a02727,#d24747);
+      transition:width .25s ease;
+    }
+    .resource-bar.nerve i{background:linear-gradient(90deg,#a27b28,#d0aa47)}
+    .resource-bar.happy i{background:linear-gradient(90deg,#356593,#4b88ba)}
+    .resource-bar.life i{background:linear-gradient(90deg,#38804a,#5aac6a)}
+    .resource-bar i.overcap{
+      background:linear-gradient(90deg,#a72727,#e05757);
+      box-shadow:0 0 6px rgba(224,87,87,.35);
+    }
+    .finance-row{
+      display:grid;
+      grid-template-columns:58px 1fr;
+      column-gap:10px;
+      align-items:baseline;
+      padding:8px 0;
+      border-top:1px solid #292929;
+    }
+    .finance-row:first-of-type{border-top:0}
+    .finance-row>span{
+      color:#888;
+      font-size:9px;
+      text-transform:uppercase;
+    }
+    .finance-row>strong{
+      justify-self:end;
+      color:#eee;
+      font-size:13px;
+    }
+    .finance-row>small{
+      grid-column:2;
+      justify-self:end;
+      color:#666;
+      font-size:9px;
+      margin-top:2px;
+    }
+    .action-center-card{border-top:2px solid #9f2929}
+    .action-center-card::after{opacity:.035}
+    @media(max-width:820px){
+      .hud-nav{display:none}
+      .account-status{grid-template-columns:1fr}
+      .finance-status{border-left:0;border-top:1px solid #303030}
+    }
+    @media(max-width:560px){
+      .resource-row{grid-template-columns:108px 1fr}
+      .resource-row small{display:none}
+      .resource-meta{font-size:9px}
+      .finance-row>strong{font-size:12px}
+    }
+
   </style>
 </head>
 <body>
@@ -680,6 +833,12 @@
           <span>Personal companion</span>
         </div>
       </div>
+      <nav class="hud-nav" aria-label="Dashboard sections">
+        <a href="#actionCenter">Overview</a>
+        <a href="#progressionSection">Progression</a>
+        <a href="#economySection">Economy</a>
+        <a href="#activitySection">Activity</a>
+      </nav>
       <div class="hud-actions">
         <span id="pipelinePill" class="hud-health"><i></i><span>…</span></span>
         <button id="refreshButton" class="hud-refresh" type="button" aria-label="Refresh" title="Refresh">↻</button>
@@ -726,26 +885,55 @@
       </div>
     </section>
 
-    <div class="grid">
-      <div class="kpi"><div class="label">Energy</div><div id="kpiEnergy" class="value">—</div><div id="kpiGym" class="small">—</div></div>
-      <div class="kpi"><div class="label">Nerve</div><div id="kpiNerve" class="value">—</div><div class="small">Crime 2.0</div></div>
-      <div class="kpi"><div class="label">Cash</div><div id="kpiCash" class="value">—</div><div id="kpiStocks" class="small">—</div></div>
-      <div class="kpi"><div class="label">Bank</div><div id="kpiBankMain" class="value">—</div><div id="kpiBank" class="small">—</div></div>
-    </div>
-
-    <div class="status-strip">
-      <div class="status-chip"><span class="label">Happy</span><b id="barHappy">—</b></div>
-      <div class="status-chip"><span class="label">Life</span><b id="barLife">—</b></div>
-      <div class="status-chip"><span class="label">Stocks</span><b id="barStocks">—</b></div>
-    </div>
-
-    <div class="card action-center-card">
-      <h2>Action Center</h2>
-      <div class="section-note sub">Automatically prioritized from fresh Torn data. Medium-confidence advice is heuristic, not a hard rule.</div>
+    <section id="actionCenter" class="card action-center-card">
+      <div class="section-heading">
+        <div>
+          <h2>Action Center</h2>
+          <div class="sub">What matters right now, prioritized from fresh Torn data.</div>
+        </div>
+        <span class="section-badge">LIVE</span>
+      </div>
       <div id="actionRows" class="action-list"></div>
-    </div>
+    </section>
 
-    <div class="card">
+    <section class="account-status">
+      <div class="resource-status">
+        <div class="status-title">Resources</div>
+
+        <div class="resource-row">
+          <div class="resource-meta"><span>Energy</span><strong id="kpiEnergy">—</strong></div>
+          <div class="resource-bar"><i id="energyFill"></i></div>
+          <small id="kpiGym">—</small>
+        </div>
+
+        <div class="resource-row">
+          <div class="resource-meta"><span>Nerve</span><strong id="kpiNerve">—</strong></div>
+          <div class="resource-bar nerve"><i id="nerveFill"></i></div>
+          <small>Crime 2.0</small>
+        </div>
+
+        <div class="resource-row">
+          <div class="resource-meta"><span>Happy</span><strong id="barHappy">—</strong></div>
+          <div class="resource-bar happy"><i id="happyFill"></i></div>
+          <small>Training resource</small>
+        </div>
+
+        <div class="resource-row">
+          <div class="resource-meta"><span>Life</span><strong id="barLife">—</strong></div>
+          <div class="resource-bar life"><i id="lifeFill"></i></div>
+          <small>Health</small>
+        </div>
+      </div>
+
+      <div class="finance-status">
+        <div class="status-title">Finance</div>
+        <div class="finance-row"><span>Cash</span><strong id="kpiCash">—</strong><small>Liquid</small></div>
+        <div class="finance-row"><span>Bank</span><strong id="kpiBankMain">—</strong><small id="kpiBank">—</small></div>
+        <div class="finance-row"><span>Stocks</span><strong id="kpiStocks">—</strong><small>Portfolio value</small></div>
+      </div>
+    </section>
+
+    <div id="activitySection" class="card">
       <div class="top" style="margin:0 0 10px">
         <div>
           <h2 style="margin:0">Game Activity</h2>
@@ -770,7 +958,7 @@
       <div id="battleRows"></div>
     </div>
 
-    <div class="card">
+    <div id="economySection" class="card">
       <h2>Investment Strategy</h2>
       <div id="investmentRows"></div>
     </div>
@@ -793,7 +981,7 @@
       <div id="piRows"></div>
     </div>
 
-    <div class="card">
+    <div id="progressionSection" class="card">
       <h2>Progression</h2>
       <div id="progressionRows"></div>
     </div>
@@ -998,12 +1186,23 @@
     $("kpiGym").textContent=g.gym_name||"—";
     $("kpiNerve").textContent=num(bars.nerve_current)+" / "+num(bars.nerve_max);
     $("kpiCash").textContent=money(e.cash);
-    $("kpiStocks").textContent="Stock holdings " + money(e.stocks_value);
+    $("kpiStocks").textContent=money(e.stocks_value);
     $("kpiBankMain").textContent=money(e.bank_principal);
     $("kpiBank").textContent=e.bank_matures_at ? "Matures " + dt(e.bank_matures_at) : "Principal";
     $("barHappy").textContent=num(bars.happy_current)+" / "+num(bars.happy_max);
     $("barLife").textContent=num(bars.life_current)+" / "+num(bars.life_max);
-    $("barStocks").textContent=money(e.stocks_value);
+
+    const fill=(id,current,max)=>{
+      const el=$(id), c=Number(current), m=Number(max);
+      if(!el) return;
+      const pct=Number.isFinite(c)&&Number.isFinite(m)&&m>0 ? Math.max(0,Math.min(100,(c/m)*100)) : 0;
+      el.style.width=pct+"%";
+      el.classList.toggle("overcap",Number.isFinite(c)&&Number.isFinite(m)&&c>m);
+    };
+    fill("energyFill",g.energy_current,g.energy_max);
+    fill("nerveFill",bars.nerve_current,bars.nerve_max);
+    fill("happyFill",bars.happy_current,bars.happy_max);
+    fill("lifeFill",bars.life_current,bars.life_max);
 
     const activityHours=Number(activity.coverage_hours);
     $("activityMeta").textContent =
