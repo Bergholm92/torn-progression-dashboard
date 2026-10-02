@@ -47,6 +47,10 @@
     th{color:var(--muted);font-weight:500}
     .right{text-align:right}
     .section-note{margin-top:-5px;margin-bottom:10px}
+    details{margin-top:10px;border-top:1px solid var(--line);padding-top:10px}
+    summary{cursor:pointer;color:var(--accent2);font-size:13px}
+    .rel-high{color:var(--good)} .rel-medium{color:var(--accent2)} .rel-conditional{color:var(--warn)}
+    .rel-low,.rel-none,.rel-owned{color:var(--muted)}
     .footer{margin-top:18px;display:flex;justify-content:space-between;gap:12px;align-items:center}
     .action-list{display:grid;gap:9px}
     .action-item{background:var(--card2);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:12px;padding:11px 12px}
@@ -138,6 +142,19 @@
     <div class="card">
       <h2>Nästa investering</h2>
       <div id="investmentRows"></div>
+    </div>
+
+    <div class="card">
+      <h2>Stock benefits · kontorelevans</h2>
+      <div class="section-note sub">Monetär ROI och progression hålls separata. Ingen låtsasdollar-värdering av energy, nerve, happy, racing osv.</div>
+      <div id="progressionStockRows"></div>
+      <details>
+        <summary>Visa alla icke-monetära stock benefits</summary>
+        <table>
+          <thead><tr><th>Stock</th><th>Benefit</th><th class="right">Kostnad</th><th class="right">Relevans</th></tr></thead>
+          <tbody id="relevanceRows"></tbody>
+        </table>
+      </details>
     </div>
 
     <div class="card">
@@ -313,6 +330,8 @@
     const crimes=Array.isArray(d.crimes)?d.crimes:[];
     const stocks=Array.isArray(d.stocks)?d.stocks:[];
     const actions=Array.isArray(d.actions)?d.actions:[];
+    const progressionStocks=Array.isArray(d.stock_progression_shortlist)?d.stock_progression_shortlist:[];
+    const stockRelevance=Array.isArray(d.stock_account_relevance)?d.stock_account_relevance:[];
     const trends=d.trends||{};
     const pipeline=d.pipeline?.pipeline_status||"UNKNOWN";
 
@@ -384,6 +403,21 @@
       row("FHG-gap efter bankvinst", money(strategy.capital_gap_to_long_term)) +
       row("Kapitalstege", esc(frontierText||"—")) +
       row("Status", ready.stock_recommendation_ready ? "READY" : "VÄNTAR", ready.stock_recommendation_ready?"good":"warn");
+
+    $("progressionStockRows").innerHTML = progressionStocks.map(s =>
+      row(
+        (s.ticker||"—") + " · " + (s.benefit_description||""),
+        money(s.capital_needed_for_next_benefit) + ' <span class="small rel-' + esc(s.account_relevance||"") + '">' + esc(String(s.account_relevance||"").toUpperCase()) + '</span>'
+      ) +
+      '<div class="small" style="margin:-4px 0 8px">' + esc(s.relevance_reason||"") + '</div>'
+    ).join("") || '<div class="small">Inga högt relevanta progression-block just nu.</div>';
+
+    $("relevanceRows").innerHTML = stockRelevance.map(s =>
+      '<tr><td><b>'+esc(s.ticker||"—")+'</b></td>' +
+      '<td>'+esc(s.benefit_description||"—")+'</td>' +
+      '<td class="right">'+money(s.capital_needed_for_next_benefit)+'</td>' +
+      '<td class="right rel-'+esc(s.account_relevance||"")+'">'+esc(String(s.account_relevance||"—").toUpperCase())+'</td></tr>'
+    ).join("");
 
     $("piRows").innerHTML =
       row("Nuvarande hyra / 100d", money(prop.actual_100_day_equivalent)) +
