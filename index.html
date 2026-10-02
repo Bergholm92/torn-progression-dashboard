@@ -438,16 +438,16 @@
     </section>
 
     <div class="grid">
-      <div class="kpi"><div class="label">Total stats</div><div id="kpiStats" class="value">—</div><div id="kpiStatsDelta" class="small">—</div></div>
       <div class="kpi"><div class="label">Energy</div><div id="kpiEnergy" class="value">—</div><div id="kpiGym" class="small">—</div></div>
-      <div class="kpi"><div class="label">Net worth</div><div id="kpiNetworth" class="value">—</div><div id="kpiStocks" class="small">—</div></div>
-      <div class="kpi"><div class="label">Cash</div><div id="kpiCash" class="value">—</div><div id="kpiBank" class="small">—</div></div>
+      <div class="kpi"><div class="label">Nerve</div><div id="kpiNerve" class="value">—</div><div class="small">Crime 2.0</div></div>
+      <div class="kpi"><div class="label">Cash</div><div id="kpiCash" class="value">—</div><div id="kpiStocks" class="small">—</div></div>
+      <div class="kpi"><div class="label">Bank</div><div id="kpiBankMain" class="value">—</div><div id="kpiBank" class="small">—</div></div>
     </div>
 
     <div class="status-strip">
-      <div class="status-chip"><span class="label">Nerve</span><b id="barNerve">—</b></div>
       <div class="status-chip"><span class="label">Happy</span><b id="barHappy">—</b></div>
       <div class="status-chip"><span class="label">Life</span><b id="barLife">—</b></div>
+      <div class="status-chip"><span class="label">Stocks</span><b id="barStocks">—</b></div>
     </div>
 
     <div class="card action-center-card">
@@ -707,21 +707,16 @@
     pp.textContent=pipeline;
     pp.className="pill " + (pipeline==="OK"?"good":pipeline==="STALE"?"warn":"bad");
 
-    $("kpiStats").textContent=num(b.total);
-    const trackedBattle=d.trends?.battle||{};
-    $("kpiStatsDelta").textContent =
-      d24.total !== null && d24.total !== undefined
-        ? "24h " + signed(d24.total)
-        : "Tracking " + signed(trackedBattle.gain);
     $("kpiEnergy").textContent=num(g.energy_current) + " / " + num(g.energy_max);
     $("kpiGym").textContent=g.gym_name||"—";
-    $("kpiNetworth").textContent=money(e.networth);
-    $("kpiStocks").textContent="Stocks " + money(e.stocks_value);
+    $("kpiNerve").textContent=num(bars.nerve_current)+" / "+num(bars.nerve_max);
     $("kpiCash").textContent=money(e.cash);
-    $("kpiBank").textContent="Bank " + money(e.bank_principal);
-    $("barNerve").textContent=num(bars.nerve_current)+" / "+num(bars.nerve_max);
+    $("kpiStocks").textContent="Stock holdings " + money(e.stocks_value);
+    $("kpiBankMain").textContent=money(e.bank_principal);
+    $("kpiBank").textContent=e.bank_matures_at ? "Matures " + dt(e.bank_matures_at) : "Principal";
     $("barHappy").textContent=num(bars.happy_current)+" / "+num(bars.happy_max);
     $("barLife").textContent=num(bars.life_current)+" / "+num(bars.life_max);
+    $("barStocks").textContent=money(e.stocks_value);
 
     const activityHours=Number(activity.coverage_hours);
     $("activityMeta").textContent =
