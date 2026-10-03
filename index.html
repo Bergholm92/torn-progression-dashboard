@@ -1325,9 +1325,10 @@
     const dayText=x=>x?.eta_days_30d_pace!=null ? num(x.eta_days_30d_pace)+" days" : "—";
     $("trainingModelPill").textContent=String(training.model_version||"v2").toUpperCase();
     $("trainingMeta").textContent=num(training.complete_training_events)+" complete sessions · 30d calendar pace";
-    const total10=totalEta.find(x=>Number(x.target)===10000000);
+    const total10=totalEta.find(x=>Number(x.target)===10000000), totalTrend=totalBs.trend||{};
+    const totalTrendText=totalTrend.has_24h_history ? " · 24h "+signed(totalTrend.gain_24h) : " · collecting 24h history";
     $("trainingRows").innerHTML=
-      row("Total BS",num(totalAnalysis.total)+" · 10M "+(total10?.eta_days_30d_pace!=null?num(total10.eta_days_30d_pace)+" days":"—")+
+      row("Total BS",num(totalAnalysis.total)+totalTrendText+" · 10M "+(total10?.eta_days_30d_pace!=null?num(total10.eta_days_30d_pace)+" days":"—")+
         ' <span class="small">· '+esc(String(total10?.extrapolation_confidence||totalAnalysis.model_confidence||"—"))+"</span>") +
       row("Total efficiency",num(Math.round(Number(totalAnalysis.blended_gain_per_1000e||0)))+" modeled gain / 1,000E · "+num(totalAnalysis.complete_events)+" sessions") +
       trainingStats.map(s=>{
