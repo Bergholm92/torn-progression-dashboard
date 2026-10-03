@@ -1188,6 +1188,20 @@
     return data;
   }
 
+  function humanStatus(v){
+    const s=String(v||"").toUpperCase();
+    const map={ACTIVE:"Active",OK:"Up to date",STALE:"Needs refresh",READY:"Ready",WAITING:"Waiting",HIGH:"High",MEDIUM_HIGH:"Good",MEDIUM:"Medium",LOW:"Low",VERY_LOW:"Very low",STRONG:"Strong",MODERATE:"Moderate",WEAK:"Weak",NONE:"None",LEARNING:"Learning"};
+    return map[s]||String(v||"—").replaceAll("_"," ").toLowerCase().replace(/^./,x=>x.toUpperCase());
+  }
+  function piDecision(status,ticker){
+    const s=String(status||"").toUpperCase();
+    if(s==="BEST_MONETARY_STOCK_YIELD_AT_LEAST_AS_HIGH") return "Stocks currently give the better modeled return"+(ticker?" · "+ticker:"");
+    if(s.includes("PI") && (s.includes("BETTER")||s.includes("HIGHER"))) return "Buying a Private Island is currently stronger in the model";
+    if(s.includes("STOCK")) return "Stocks currently look stronger"+(ticker?" · "+ticker:"");
+    return humanStatus(status);
+  }
+  function confidenceText(v){ return humanStatus(v); }
+
   function render(d) {
     const p=d.profile||{}, b=d.battle_stats?.current||{}, d24=d.battle_stats?.delta_24h||{};
     const g=d.gym||{}, bars=d.bars||{}, e=d.economy||{}, prop=d.property||{}, pi=d.pi_economics||{};
@@ -1234,7 +1248,7 @@
         : "—";
     $("heroWar").textContent = war.opponent || "None";
     $("heroWarNote").textContent =
-      war.status ? String(war.status).toUpperCase() + (war.starts_at ? " · " + relativeTime(war.starts_at) : "") : "—";
+      war.status ? humanStatus(war.status) + (war.starts_at ? " · " + relativeTime(war.starts_at) : "") : "—";
 
     const pp=$("pipelinePill");
     pp.textContent=pipeline;
@@ -1265,13 +1279,13 @@
     const activityHours=Number(activity.coverage_hours);
     $("activityMeta").textContent =
       (Number.isFinite(activityHours) ? activityHours.toFixed(1)+"h activity" : "Activity is being collected") +
-      " · confidence " + String(activity.confidence||"—").toUpperCase();
+      " · confidence " + confidenceText(activity.confidence);
 
     const sig=activity.signals||{};
     const signalCard=(label,obj,detail) => {
       const support=String(obj?.support||"none").toLowerCase();
       return '<div class="signal"><span class="label">'+esc(label)+'</span>' +
-        '<b class="sig-'+esc(support)+'">'+esc(support.toUpperCase())+'</b>' +
+        '<b class="sig-'+esc(support)+'">'+esc(humanStatus(support))+'</b>' +
         '<div class="small">'+esc(detail)+'</div></div>';
     };
     $("activitySignals").innerHTML =
@@ -1301,7 +1315,7 @@
       return '<div class="action-item '+esc(confidence)+'">' +
         '<div class="action-head"><div class="action-title">'+esc(a.title||"")+'</div>' +
         '<div class="action-tags"><span class="tag '+esc(state)+'">'+esc(a.state||"")+'</span>' +
-        '<span class="tag">'+esc(a.confidence||"")+'</span></div></div>' +
+        '<span class="tag">'+esc(confidenceText(a.confidence))+'</span></div></div>' +
         (time ? '<div class="small" style="margin-top:4px">'+esc(time)+' · '+esc(dt(a.meta.starts_at))+'</div>' : '') +
         '<div class="action-detail">'+esc(a.detail||"")+'</div></div>';
     }).join("") || '<div class="small">No current recommendations.</div>';
@@ -1369,7 +1383,7 @@
       row("Long-term target", esc((longTerm.ticker||"—") + (longTerm.stock_name ? " · " + longTerm.stock_name : ""))) +
       row("Gap to FHG after bank profit", money(strategy.capital_gap_to_long_term)) +
       row("Capital ladder", esc(frontierText||"—")) +
-      row("Status", ready.stock_recommendation_ready ? "READY" : "WAITING", ready.stock_recommendation_ready?"good":"warn");
+      row("Analysis", ready.stock_recommendation_ready ? "Ready to use" : "Waiting for fresh data", ready.stock_recommendation_ready?"good":"warn");
 
     $("progressionStockRows").innerHTML = progressionStocks.map(s =>
       row(
@@ -1397,8 +1411,8 @@
       row("Comparable buy median", money(prop.comparable_buy_median)) +
       row("Days remaining", num(prop.days_remaining)) +
       row("Rent-saved yield", pct(pi.rent_saved_yield_vs_comparable_median)) +
-      row("Dynamic break-even / 100d", money(pivs.dynamic_pi_break_even_rent_100d)) +
-      row("PI vs best stock", ready.pi_recommendation_ready ? esc(pivs.comparison_status||"READY") : "WAITING", ready.pi_recommendation_ready?"good":"warn");
+      row("Rent where buying PI breaks even", money(pivs.dynamic_pi_break_even_rent_100d)+" / 100 days") +
+      row("Best use of capital", ready.pi_recommendation_ready ? esc(piDecision(pivs.comparison_status,pivs.best_stock_ticker)) : "Waiting for fresh market data", ready.pi_recommendation_ready?"good":"warn");
 
     const eduWhen=edu.ends_at ? relativeTime(edu.ends_at) : "";
     const warWhen=war.starts_at ? relativeTime(war.starts_at) : "";
@@ -1406,15 +1420,15 @@
       row("Education", esc(edu.course_name||"—")) +
       row("Ends", esc(dt(edu.ends_at) + (eduWhen ? " · " + eduWhen : ""))) +
       row("Available merits", num(merits.available)) +
-      row("War", esc((war.status||"—") + " · " + (war.opponent||"—"))) +
+      row("War", esc(humanStatus(war.status) + " · " + (war.opponent||"—"))) +
       (war.starts_at ? row("War start", esc(dt(war.starts_at) + (warWhen ? " · " + warWhen : ""))) : "");
 
     const np=d.nerve_progression||{};
     $("nerveVisible").textContent=num(np.visible_max_nerve);
     $("nerveNNB").textContent=np.estimated_nnb!=null ? num(np.estimated_nnb) : "Calibrating";
     $("nerveNext").textContent=np.next_nnb!=null ? num(np.next_nnb)+" NNB · "+num(np.expected_visible_max_at_next_nnb)+" visible" : "Waiting for baseline";
-    $("nerveConfidence").textContent=String(np.confidence||"LOW").toUpperCase();
-    $("nerveModelPill").textContent=String(np.model_status||"LEARNING").replaceAll("_"," ");
+    $("nerveConfidence").textContent=confidenceText(np.confidence||"LOW");
+    $("nerveModelPill").textContent=humanStatus(np.model_status||"LEARNING");
     $("nerveTracking").textContent="Baseline: "+num(np.visible_max_nerve)+" visible − "+num(np.bonus_nerve)+" bonus = "+num(np.estimated_nnb)+" NNB. Since tracking: "+num(np.nerve_spent_since_tracking)+" nerve spent · "+num(np.attempts_since_tracking)+" crime attempts · "+num(np.observed_bar_increases)+" observed NNB increases. CE is hidden; timing forecast calibrates from actual NNB changes.";
 
     $("crimeRows").innerHTML = crimes.map(c => {
@@ -1427,8 +1441,8 @@
     ).join("");
 
     let quality =
-      row("Stock recommendation", ready.stock_recommendation_ready?"READY":"WAITING", ready.stock_recommendation_ready?"good":"warn") +
-      row("PI recommendation", ready.pi_recommendation_ready?"READY":"WAITING", ready.pi_recommendation_ready?"good":"warn");
+      row("Stock data", ready.stock_recommendation_ready?"Ready":"Waiting for fresh data", ready.stock_recommendation_ready?"good":"warn") +
+      row("Private Island data", ready.pi_recommendation_ready?"Ready":"Waiting for fresh data", ready.pi_recommendation_ready?"good":"warn");
     quality += issues.map(i =>
       row(i.issue_key||"issue", esc(i.severity||"INFO"), i.severity==="ERROR"?"bad":i.severity==="WARN"?"warn":"small")
     ).join("");
