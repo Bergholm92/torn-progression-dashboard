@@ -815,12 +815,12 @@
     }
 
   
-    /* Header/logo + profile image repair v2 */
-    .torn-mark{height:31px;width:86px;padding-right:11px;border-right:1px solid #3a3a3a;display:flex;align-items:center;overflow:hidden}
-    .torn-crop{display:block;width:72px;height:28px;background:url("https://www.torn.com/images/v2/torn_logo/regular/desktop/logo@2x.png") left center/auto 28px no-repeat}
-    .player-art{background:#0e0e0e;overflow:hidden}
-    .player-art img{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 18%;image-rendering:auto}
-    @media(max-width:720px){.torn-mark{height:28px;width:78px}.torn-crop{width:66px;height:25px;background-size:auto 25px}}
+    /* Stable header/profile treatment: no remote sprite and no corrupted artwork */
+    .torn-mark{height:31px;min-width:76px;padding-right:11px;border-right:1px solid #3a3a3a;display:flex;align-items:center}
+    .torn-text{font-family:Arial Black,Impact,Arial,sans-serif;font-size:20px;font-weight:900;font-style:italic;letter-spacing:-1.5px;color:#e8e8e8;text-shadow:0 1px 0 #000}
+    .player-art{background:radial-gradient(circle at 50% 35%,#343434 0,#202020 38%,#111 72%);overflow:hidden;display:grid;place-items:center}
+    .profile-monogram{width:72px;height:72px;border:1px solid #4b4b4b;background:#171717;display:grid;place-items:center;font-size:38px;font-weight:900;color:#777;text-shadow:0 1px #000}
+    @media(max-width:720px){.torn-mark{height:28px;min-width:70px}.torn-text{font-size:19px}.profile-monogram{width:64px;height:64px;font-size:34px}}
 </style>
 </head>
 <body>
@@ -842,7 +842,7 @@
   <section id="dashboardView" class="hidden">
     <header class="hud-bar">
       <div class="hud-brand">
-        <div class="torn-mark" aria-label="Torn"><span class="torn-crop"></span></div>
+        <div class="torn-mark torn-text" aria-label="Torn">TORN</div>
         <div>
           <strong>Progression</strong>
           <span>Personal companion</span>
@@ -861,8 +861,8 @@
     </header>
 
     <section class="player-overview">
-      <div class="player-art">
-        <img id="heroAvatar" src="./assets/bergholm-profile-full.webp" alt="Bergholm profile artwork">
+      <div class="player-art player-art-placeholder" aria-hidden="true">
+        <div class="profile-monogram">B</div>
       </div>
 
       <div class="player-identity">
