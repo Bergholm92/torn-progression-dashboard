@@ -1330,11 +1330,14 @@
     const totalTrendText=totalTrend.has_24h_history ? " · 24h "+signed(totalTrend.gain_24h) : " · collecting 24h history";
     const ratioText=optimizer.balboas_ratio!=null ? Number(optimizer.balboas_ratio).toFixed(3) : "—";
     $("trainingRows").innerHTML=
-      row("Optimizer",statName(optimizer.recommended_stat||"—")+" · "+esc(optimizer.optimizer_mode||"—"))+
-      row("Balboas ratio",ratioText+" · "+esc(optimizer.balboas_status||"—")+" · buffer "+num(Math.round(Number(optimizer.balboas_margin_points||0))))+
-      allocationPlans.map(p=>row(num(p.energy_budget)+"E plan",
-        "STR "+num(p.strength_energy)+" · DEF "+num(p.defense_energy)+" · SPD "+num(p.speed_energy)+" · DEX "+num(p.dexterity_energy)+
-        ' <span class="small">· +'+num(p.projected_total_gain)+" BS · ratio "+esc(p.projected_balboas_ratio)+"</span>")).join("")+
+      row("Bäst träning just nu","Träna "+statName(optimizer.recommended_stat||"—")+
+        ' <span class="small">· bäst modellerad BS-gain utan att riskera specialistgymmet</span>')+
+      row("Balboas","Säker · ratio "+ratioText+
+        ' <span class="small">· krav 1,25 · säkerhetsgräns 1,30 · marginal '+num(Math.round(Number(optimizer.balboas_margin_points||0)))+"</span>")+
+      allocationPlans.map(p=>row("Plan för "+num(p.energy_budget)+" energy",
+        (Number(p.dexterity_energy)===Number(p.energy_budget) ? "Dexterity "+num(p.dexterity_energy)+"E" :
+         "STR "+num(p.strength_energy)+"E · DEF "+num(p.defense_energy)+"E · SPD "+num(p.speed_energy)+"E · DEX "+num(p.dexterity_energy)+"E")+
+        ' <span class="small">· ca +'+num(p.projected_total_gain)+" BS · Balboas-ratio "+esc(p.projected_balboas_ratio)+"</span>")).join("")+
       row("Total BS",num(totalAnalysis.total)+totalTrendText+" · 10M "+(total10?.eta_days_30d_pace!=null?num(total10.eta_days_30d_pace)+" days":"—")+
         ' <span class="small">· '+esc(String(total10?.extrapolation_confidence||totalAnalysis.model_confidence||"—"))+"</span>") +
       row("Total efficiency",num(Math.round(Number(totalAnalysis.blended_gain_per_1000e||0)))+" modeled gain / 1,000E · "+num(totalAnalysis.complete_events)+" sessions") +
