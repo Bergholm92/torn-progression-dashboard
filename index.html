@@ -821,6 +821,15 @@
     .player-art{background:radial-gradient(circle at 50% 35%,#343434 0,#202020 38%,#111 72%);overflow:hidden;display:grid;place-items:center}
     .profile-monogram{width:72px;height:72px;border:1px solid #4b4b4b;background:#171717;display:grid;place-items:center;font-size:38px;font-weight:900;color:#777;text-shadow:0 1px #000}
     @media(max-width:720px){.torn-mark{height:28px;min-width:70px}.torn-text{font-size:19px}.profile-monogram{width:64px;height:64px;font-size:34px}}
+
+    .section-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+    .section-head h2{margin-bottom:0}
+    .nerve-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;margin-top:12px;background:#333;border:1px solid #333}
+    .nerve-grid>div{background:#171717;padding:12px}
+    .nerve-grid .label{display:block;font-size:9px;color:#999;text-transform:uppercase;letter-spacing:.06em}
+    .nerve-grid strong{display:block;margin-top:5px;font-size:17px;color:#eee}
+    .nerve-note{margin-top:10px;line-height:1.45}
+    @media(max-width:720px){.nerve-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 </head>
 <body>
@@ -1000,6 +1009,17 @@
     <div id="progressionSection" class="card">
       <h2>Progression</h2>
       <div id="progressionRows"></div>
+    </div>
+
+    <div class="card nerve-card">
+      <div class="section-head"><h2>Nerve Progression</h2><span id="nerveModelPill" class="pill">LEARNING</span></div>
+      <div class="nerve-grid">
+        <div><span class="label">Visible max nerve</span><strong id="nerveVisible">—</strong></div>
+        <div><span class="label">Estimated NNB</span><strong id="nerveNNB">Calibrating</strong></div>
+        <div><span class="label">Next NNB</span><strong id="nerveNext">—</strong></div>
+        <div><span class="label">Confidence</span><strong id="nerveConfidence">LOW</strong></div>
+      </div>
+      <div id="nerveTracking" class="sub nerve-note">Building baseline from Crime 2.0 activity…</div>
     </div>
 
     <div class="card">
@@ -1337,6 +1357,14 @@
       row("Available merits", num(merits.available)) +
       row("War", esc((war.status||"—") + " · " + (war.opponent||"—"))) +
       (war.starts_at ? row("War start", esc(dt(war.starts_at) + (warWhen ? " · " + warWhen : ""))) : "");
+
+    const np=d.nerve_progression||{};
+    $("nerveVisible").textContent=num(np.visible_max_nerve);
+    $("nerveNNB").textContent=np.estimated_nnb!=null ? num(np.estimated_nnb) : "Calibrating";
+    $("nerveNext").textContent=np.estimated_nnb!=null ? num(Number(np.estimated_nnb)+5) : "Waiting for baseline";
+    $("nerveConfidence").textContent=String(np.confidence||"LOW").toUpperCase();
+    $("nerveModelPill").textContent=String(np.model_status||"LEARNING").replaceAll("_"," ");
+    $("nerveTracking").textContent="Since tracking: "+num(np.nerve_spent_since_tracking)+" nerve spent · "+num(np.attempts_since_tracking)+" crime attempts · "+num(np.observed_bar_increases)+" observed bar increases. CE is hidden, so the forecast will calibrate from your actual NNB changes.";
 
     $("crimeRows").innerHTML = crimes.map(c => {
       const sr = Number(c.attempts) > 0 ? ((Number(c.successes||0)/Number(c.attempts))*100).toFixed(1)+"%" : "—";
