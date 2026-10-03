@@ -1119,7 +1119,7 @@
     const h=Number(hours);
     if (!Number.isFinite(h) || h<0) return "Since tracking started";
     if (h>=168) return "Last 7 days";
-    if (h>=48) return "Since tracking started · " + Math.floor(h/24) + " dagar";
+    if (h>=48) return "Since tracking started · " + Math.floor(h/24) + " days";
     if (h>=1) return "Since tracking started · " + Math.floor(h) + "h " + Math.round((h%1)*60) + "m";
     return "Since tracking started · " + Math.round(h*60) + " min";
   }
@@ -1344,14 +1344,14 @@
     const totalTrendText=totalTrend.has_24h_history ? " · 24h "+signed(totalTrend.gain_24h) : " · collecting 24h history";
     const ratioText=optimizer.balboas_ratio!=null ? Number(optimizer.balboas_ratio).toFixed(3) : "—";
     $("trainingRows").innerHTML=
-      row("Bäst träning just nu","Träna "+statName(optimizer.recommended_stat||"—")+
-        ' <span class="small">· bäst modellerad BS-gain utan att riskera specialistgymmet</span>')+
-      row("Balboas","Säker · ratio "+ratioText+
-        ' <span class="small">· krav 1,25 · säkerhetsgräns 1,30 · marginal '+num(Math.round(Number(optimizer.balboas_margin_points||0)))+"</span>")+
-      allocationPlans.map(p=>row("Plan för "+num(p.energy_budget)+" energy",
+      row("Best training right now","Train "+statName(optimizer.recommended_stat||"—")+
+        ' <span class="small">· best modeled BS gain without risking specialist gym access</span>')+
+      row("Balboas","Safe · ratio "+ratioText+
+        ' <span class="small">· requirement 1.25 · safety threshold 1.30 · margin '+num(Math.round(Number(optimizer.balboas_margin_points||0)))+"</span>")+
+      allocationPlans.map(p=>row("Plan for "+num(p.energy_budget)+" energy",
         (Number(p.dexterity_energy)===Number(p.energy_budget) ? "Dexterity "+num(p.dexterity_energy)+"E" :
          "STR "+num(p.strength_energy)+"E · DEF "+num(p.defense_energy)+"E · SPD "+num(p.speed_energy)+"E · DEX "+num(p.dexterity_energy)+"E")+
-        ' <span class="small">· ca +'+num(p.projected_total_gain)+" BS · Balboas-ratio "+esc(p.projected_balboas_ratio)+"</span>")).join("")+
+        ' <span class="small">· approx. +'+num(p.projected_total_gain)+" BS · Balboas ratio "+esc(p.projected_balboas_ratio)+"</span>")).join("")+
       row("Total BS",num(totalAnalysis.total)+totalTrendText+" · 10M "+(total10?.eta_days_30d_pace!=null?num(total10.eta_days_30d_pace)+" days":"—")+
         ' <span class="small">· '+esc(String(total10?.extrapolation_confidence||totalAnalysis.model_confidence||"—"))+"</span>") +
       row("Total efficiency",num(Math.round(Number(totalAnalysis.blended_gain_per_1000e||0)))+" modeled gain / 1,000E · "+num(totalAnalysis.complete_events)+" sessions") +
