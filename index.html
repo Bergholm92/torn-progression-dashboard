@@ -1317,6 +1317,7 @@
       row("Dexterity", statDelta(b.dexterity,d24.dexterity));
 
     const training=d.battle_training_v2||{};
+    const totalBs=d.total_battle_stats||{}, totalAnalysis=totalBs.analysis||{}, totalEta=Array.isArray(totalBs.eta)?totalBs.eta:[];
     const trainingStats=Array.isArray(training.stats)?training.stats:[];
     const trainingEta=Array.isArray(training.eta)?training.eta:[];
     const statName=x=>String(x||"").charAt(0).toUpperCase()+String(x||"").slice(1);
@@ -1324,13 +1325,19 @@
     const dayText=x=>x?.eta_days_30d_pace!=null ? num(x.eta_days_30d_pace)+" days" : "—";
     $("trainingModelPill").textContent=String(training.model_version||"v2").toUpperCase();
     $("trainingMeta").textContent=num(training.complete_training_events)+" complete sessions · 30d calendar pace";
-    $("trainingRows").innerHTML=trainingStats.map(s=>{
+    const total10=totalEta.find(x=>Number(x.target)===10000000);
+    $("trainingRows").innerHTML=
+      row("Total BS",num(totalAnalysis.total)+" · 10M "+(total10?.eta_days_30d_pace!=null?num(total10.eta_days_30d_pace)+" days":"—")+
+        ' <span class="small">· '+esc(String(total10?.extrapolation_confidence||totalAnalysis.model_confidence||"—"))+"</span>") +
+      row("Total efficiency",num(Math.round(Number(totalAnalysis.blended_gain_per_1000e||0)))+" modeled gain / 1,000E · "+num(totalAnalysis.complete_events)+" sessions") +
+      trainingStats.map(s=>{
       const e=etaFor(s.stat,10000000);
       return row(statName(s.stat),
         num(Math.round(Number(s.current_gain_per_1000e||0)))+" gain / 1,000E · 10M "+dayText(e)+
         ' <span class="small">· '+esc(String(s.confidence||e?.model_confidence||"—").replaceAll("_"," "))+"</span>");
-    }).join("") || '<div class="small">Training forecast is calibrating.</div>';
-    $("trainingLongRows").innerHTML=trainingStats.map(s=>{
+    }).join("");
+    const totalLong=totalEta.filter(x=>Number(x.target)>10000000).map(x=>row("Total BS "+num(Number(x.target)/1000000)+"M",num(x.eta_days_30d_pace)+" days · "+esc(String(x.extrapolation_confidence||"—"))+" confidence")).join("");
+    $("trainingLongRows").innerHTML=totalLong+trainingStats.map(s=>{
       const e25=etaFor(s.stat,25000000),e50=etaFor(s.stat,50000000),e100=etaFor(s.stat,100000000);
       return row(statName(s.stat),
         "25M "+dayText(e25)+" · 50M "+dayText(e50)+" · 100M "+dayText(e100)+
