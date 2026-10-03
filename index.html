@@ -1427,9 +1427,9 @@
     $("nerveVisible").textContent=num(np.visible_max_nerve);
     $("nerveNNB").textContent=np.estimated_nnb!=null ? num(np.estimated_nnb) : "Calibrating";
     $("nerveNext").textContent=np.next_nnb!=null ? num(np.next_nnb)+" NNB · "+num(np.expected_visible_max_at_next_nnb)+" visible" : "Waiting for baseline";
-    $("nerveConfidence").textContent=confidenceText(np.confidence||"LOW");
+    $("nerveConfidence").textContent=confidenceText(np.state_confidence||np.confidence||"LOW");
     $("nerveModelPill").textContent=humanStatus(np.model_status||"LEARNING");
-    $("nerveTracking").textContent="NNB baseline: "+num(np.visible_max_nerve)+" visible − "+num(np.bonus_nerve)+" bonus = "+num(np.estimated_nnb)+" natural NNB. Crime tracking since "+dt(np.tracking_baseline_at)+": "+num(np.nerve_spent_since_tracking)+" nerve spent · "+num(np.attempts_since_tracking)+" attempts · "+num(np.observed_bar_increases)+" observed NNB increases. CE is hidden; timing forecast calibrates from actual NNB changes.";
+    $("nerveTracking").textContent="NNB state confidence "+confidenceText(np.state_confidence||"LOW")+". Tracking: "+num(np.nerve_spent_since_tracking)+" nerve spent · "+num(np.attempts_since_tracking)+" attempts · progression confidence "+confidenceText(np.confidence||"LOW")+". CE is hidden, so exact percentage and ETA are intentionally not estimated.";
 
     $("crimeRows").innerHTML = crimes.map(c => {
       const sr = Number(c.attempts) > 0 ? ((Number(c.successes||0)/Number(c.attempts))*100).toFixed(1)+"%" : "—";
