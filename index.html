@@ -983,6 +983,18 @@
       <div id="battleRows"></div>
     </div>
 
+    <div class="card">
+      <div class="top" style="margin:0 0 12px">
+        <div><h2 style="margin:0">Training Forecast</h2><div id="trainingMeta" class="sub">Empirical model · loading…</div></div>
+        <span id="trainingModelPill" class="pill">V2</span>
+      </div>
+      <div id="trainingRows"></div>
+      <details>
+        <summary>Show long-range targets</summary>
+        <div id="trainingLongRows"></div>
+      </details>
+    </div>
+
     <div id="economySection" class="card">
       <h2>Investment Strategy</h2>
       <div id="investmentRows"></div>
@@ -1303,6 +1315,27 @@
       row("Defense", statDelta(b.defense,d24.defense)) +
       row("Speed", statDelta(b.speed,d24.speed)) +
       row("Dexterity", statDelta(b.dexterity,d24.dexterity));
+
+    const training=d.battle_training_v2||{};
+    const trainingStats=Array.isArray(training.stats)?training.stats:[];
+    const trainingEta=Array.isArray(training.eta)?training.eta:[];
+    const statName=x=>String(x||"").charAt(0).toUpperCase()+String(x||"").slice(1);
+    const etaFor=(stat,target)=>trainingEta.find(x=>x.stat===stat&&Number(x.target)===target);
+    const dayText=x=>x?.eta_days_30d_pace!=null ? num(x.eta_days_30d_pace)+" days" : "—";
+    $("trainingModelPill").textContent=String(training.model_version||"v2").toUpperCase();
+    $("trainingMeta").textContent=num(training.complete_training_events)+" complete sessions · 30d calendar pace";
+    $("trainingRows").innerHTML=trainingStats.map(s=>{
+      const e=etaFor(s.stat,10000000);
+      return row(statName(s.stat),
+        num(Math.round(Number(s.current_gain_per_1000e||0)))+" gain / 1,000E · 10M "+dayText(e)+
+        ' <span class="small">· '+esc(String(s.confidence||e?.model_confidence||"—").replaceAll("_"," "))+"</span>");
+    }).join("") || '<div class="small">Training forecast is calibrating.</div>';
+    $("trainingLongRows").innerHTML=trainingStats.map(s=>{
+      const e25=etaFor(s.stat,25000000),e50=etaFor(s.stat,50000000),e100=etaFor(s.stat,100000000);
+      return row(statName(s.stat),
+        "25M "+dayText(e25)+" · 50M "+dayText(e50)+" · 100M "+dayText(e100)+
+        ' <span class="small">· long-range confidence '+esc(String(e50?.extrapolation_confidence||"—"))+"</span>");
+    }).join("");
 
     const bridge=strategy.bridge||{};
     const longTerm=strategy.long_term_target||best||{};
