@@ -814,7 +814,14 @@
       .finance-row>strong{font-size:12px}
     }
 
-  </style>
+  
+    /* Header/logo + profile image repair */
+    .torn-mark{height:31px;padding-right:11px;border-right:1px solid #3a3a3a;display:flex;align-items:center}
+    .torn-mark img{display:block;width:78px;height:auto;max-height:31px;object-fit:contain;filter:grayscale(.12) contrast(1.08) drop-shadow(0 1px 1px #000)}
+    .player-art{background:#0e0e0e;overflow:hidden}
+    .player-art img{display:block;width:100%;height:100%;object-fit:cover;object-position:center top;image-rendering:auto}
+    @media(max-width:720px){.torn-mark{height:28px}.torn-mark img{width:70px;max-height:28px}}
+</style>
 </head>
 <body>
 <main>
@@ -835,7 +842,7 @@
   <section id="dashboardView" class="hidden">
     <header class="hud-bar">
       <div class="hud-brand">
-        <div class="torn-wordmark">TORN</div>
+        <div class="torn-mark" aria-label="Torn"><img src="https://www.torn.com/images/v2/torn_logo/regular/desktop/logo@2x.png" alt="Torn"></div>
         <div>
           <strong>Progression</strong>
           <span>Personal companion</span>
@@ -855,7 +862,7 @@
 
     <section class="player-overview">
       <div class="player-art">
-        <img id="heroAvatar" src="./assets/bergholm-profile-clean.webp" alt="Bergholm profile artwork">
+        <img id="heroAvatar" src="./assets/bergholm-avatar.webp" alt="Bergholm profile artwork">
       </div>
 
       <div class="player-identity">
