@@ -58,6 +58,14 @@
     .sig-weak{color:var(--warn)} .sig-none{color:var(--muted)}
     .footer{margin-top:18px;display:flex;justify-content:space-between;gap:12px;align-items:center}
     .action-list{display:grid;gap:9px}
+    .decision-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
+    .decision-box{background:#171717;border:1px solid #343434;border-radius:3px;padding:10px}
+    .decision-box .decision-value{font-weight:800;font-size:14px;margin-top:4px;color:#eee}
+    .decision-box .decision-note{font-size:10px;color:#999;margin-top:4px;line-height:1.35}
+    .decision-box.urgent{border-left:3px solid var(--bad)}
+    .decision-box.progress{border-left:3px solid var(--good)}
+    .decision-box.money{border-left:3px solid var(--warn)}
+    @media(max-width:720px){.decision-strip{grid-template-columns:1fr}}
     .action-item{background:var(--card2);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:12px;padding:11px 12px}
     .action-item.high{border-left-color:var(--good)}
     .action-item.medium{border-left-color:var(--warn)}
@@ -894,6 +902,7 @@
         <span class="section-badge">LIVE</span>
       </div>
       <div id="actionRows" class="action-list"></div>
+      <div id="decisionStrip" class="decision-strip"></div>
     </section>
 
     <section class="account-status">
@@ -1154,6 +1163,16 @@
     const activity=d.activity_profile||{};
     const trends=d.trends||{};
     const pipeline=d.pipeline?.pipeline_status||"UNKNOWN";
+    const topWar=actions.find(a=>a.category==="war")||{};
+    const topCrime=actions.find(a=>a.category==="crime")||{};
+    const bridgeNow=strategy.bridge||{};
+    const decisionStrip=$("decisionStrip");
+    if(decisionStrip){
+      decisionStrip.innerHTML =
+        '<div class="decision-box urgent"><div class="label">War / energy</div><div class="decision-value">'+esc(war.status==="active" ? (war.opponent||"Active war") : "No active war")+'</div><div class="decision-note">'+esc(war.status==="active" ? ("Preserve flexibility · "+num(g.energy_current)+" / "+num(g.energy_max)+" energy") : ("Energy "+num(g.energy_current)+" / "+num(g.energy_max)))+'</div></div>'+
+        '<div class="decision-box progress"><div class="label">Crime progression</div><div class="decision-value">'+esc(topCrime.title||"No current crime target")+'</div><div class="decision-note">'+esc(topCrime.confidence ? ("Confidence "+String(topCrime.confidence).toUpperCase()) : "Waiting for recommendation")+'</div></div>'+
+        '<div class="decision-box money"><div class="label">Capital target</div><div class="decision-value">'+esc(bridgeNow.ticker ? ("Next: "+bridgeNow.ticker) : "Waiting")+'</div><div class="decision-note">'+esc(bridgeNow.capital_needed_for_next_benefit!=null ? (money(bridgeNow.capital_needed_for_next_benefit)+" · long-term "+((strategy.long_term_target||{}).ticker||"—")) : "No ready stock target")+'</div></div>';
+    }
 
     $("playerName").textContent = (p.name || "Bergholm").toUpperCase();
     $("heroPlayerId").textContent = "[" + (p.player_id ?? 3951204) + "]";
