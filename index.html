@@ -1333,6 +1333,7 @@
     const pp=$("pipelinePill");
     pp.textContent=pipeline;
     pp.className="pill " + (pipeline==="OK"?"good":pipeline==="STALE"?"warn":"bad");
+    pp.title="Last run: "+humanStatus(d.pipeline?.last_run_status||"UNKNOWN")+" · errors "+num(d.pipeline?.last_run_errors)+" · API calls "+num(d.pipeline?.last_run_api_calls)+" · success "+dt(d.pipeline?.last_success_at);
 
     $("kpiEnergy").textContent=num(g.energy_current) + " / " + num(g.energy_max);
     $("kpiGym").textContent=g.gym_name||"—";
@@ -1521,6 +1522,10 @@
     ).join("");
 
     let quality =
+      row("Pipeline", esc(humanStatus(d.pipeline?.pipeline_status||"UNKNOWN"))+" · "+esc(humanStatus(d.pipeline?.last_run_status||"UNKNOWN")), pipeline==="OK"?"good":"warn") +
+      row("Last successful collector", esc(dt(d.pipeline?.last_success_at))) +
+      row("Last collector API calls / errors", num(d.pipeline?.last_run_api_calls)+" / "+num(d.pipeline?.last_run_errors), Number(d.pipeline?.last_run_errors||0)===0?"good":"bad") +
+      row("Core data", ready.core_fresh?"Fresh":"Stale", ready.core_fresh?"good":"warn") +
       row("Stock data", ready.stock_recommendation_ready?"Ready":"Waiting for fresh data", ready.stock_recommendation_ready?"good":"warn") +
       row("Private Island data", ready.pi_recommendation_ready?"Ready":"Waiting for fresh data", ready.pi_recommendation_ready?"good":"warn");
     quality += issues.map(i =>
