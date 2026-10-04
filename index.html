@@ -830,7 +830,19 @@
     .nerve-grid strong{display:block;margin-top:5px;font-size:17px;color:#eee}
     .nerve-note{margin-top:10px;line-height:1.45}
     @media(max-width:720px){.nerve-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-</style>
+
+    .planner-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+    .planner-card{background:#202020;border:1px solid #343434;border-left:3px solid #c32f2f;border-radius:3px;padding:11px}
+    .planner-card.secondary{border-left-color:#d1a44a}.planner-card.work{border-left-color:#67b56f}
+    .planner-card .planner-title{font-weight:800;font-size:14px;margin:4px 0}
+    .planner-card .planner-reason{font-size:11px;color:#aaa;line-height:1.45}
+    .work-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:10px}
+    .work-kpi{background:#202020;border:1px solid #343434;border-radius:3px;padding:10px}
+    .work-kpi strong{display:block;font-size:16px;margin-top:4px;color:#eee}
+    .work-kpi small{display:block;color:#8f8f8f;font-size:10px;margin-top:3px}
+    @media(max-width:720px){.planner-grid{grid-template-columns:1fr}.work-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+  </style>
 </head>
 <body>
 <main>
@@ -919,6 +931,41 @@
       </div>
       <div id="actionRows" class="action-list"></div>
       <div id="decisionStrip" class="decision-strip"></div>
+    </section>
+
+    <section id="plannerSection" class="card">
+      <div class="section-heading">
+        <div>
+          <h2>Progression Planner</h2>
+          <div class="sub">Cross-system priority: war, crime, work and long-term progression.</div>
+        </div>
+        <span class="section-badge">V1</span>
+      </div>
+      <div id="plannerGrid" class="planner-grid"></div>
+    </section>
+
+    <section id="workCompanySection" class="card">
+      <div class="section-heading">
+        <div>
+          <h2>Work &amp; Company</h2>
+          <div class="sub">Position gain, Director Trains and company perks are measured separately.</div>
+        </div>
+        <span class="section-badge">MODEL</span>
+      </div>
+      <div class="work-kpis">
+        <div class="work-kpi"><span class="label">Company</span><strong id="workCompanyName">—</strong><small id="workCompanyStars">—</small></div>
+        <div class="work-kpi"><span class="label">Position</span><strong id="workPosition">—</strong><small id="workPassive">—</small></div>
+        <div class="work-kpi"><span class="label">Work stats</span><strong id="workStatsTotal">—</strong><small id="workStatsBreakdown">—</small></div>
+        <div class="work-kpi"><span class="label">Received trains · 30d</span><strong id="workTrains30d">—</strong><small id="workTrainDays">—</small></div>
+      </div>
+      <div id="workCompanyRows"></div>
+      <details>
+        <summary>Show Pub position growth scenarios</summary>
+        <table>
+          <thead><tr><th>Position</th><th class="right">MAN / 30d</th><th class="right">INT / 30d</th><th class="right">END / 30d</th></tr></thead>
+          <tbody id="workPositionRows"></tbody>
+        </table>
+      </details>
     </section>
 
     <section class="account-status">
@@ -1215,6 +1262,9 @@
     const stockRelevance=Array.isArray(d.stock_account_relevance)?d.stock_account_relevance:[];
     const activity=d.activity_profile||{};
     const trends=d.trends||{};
+    const work=d.work_company||{}, planner=d.progression_planner||{};
+    const workValue=work.current_work_value||{}, workStats=work.work_stats||{}, trainSupply=work.current_train_supply||{}, pubValue=work.pub_account_value||{};
+    const workScenarios=Array.isArray(work.pub_position_scenarios)?work.pub_position_scenarios:[];
     const pipeline=d.pipeline?.pipeline_status||"UNKNOWN";
     const topWar=actions.find(a=>a.category==="war")||{};
     const topCrime=actions.find(a=>a.category==="crime")||{};
@@ -1226,6 +1276,36 @@
         '<div class="decision-box progress"><div class="label">Crime progression</div><div class="decision-value">'+esc(topCrime.title||"No current crime target")+'</div><div class="decision-note">'+esc(topCrime.confidence ? ("Confidence "+String(topCrime.confidence).toUpperCase()) : "Waiting for recommendation")+'</div></div>'+
         '<div class="decision-box money"><div class="label">Capital target</div><div class="decision-value">'+esc(bridgeNow.ticker ? ("Next: "+bridgeNow.ticker) : "Waiting")+'</div><div class="decision-note">'+esc(bridgeNow.capital_needed_for_next_benefit!=null ? (money(bridgeNow.capital_needed_for_next_benefit)+" · long-term "+((strategy.long_term_target||{}).ticker||"—")) : "No ready stock target")+'</div></div>';
     }
+
+    const plannerGrid=$("plannerGrid");
+    if(plannerGrid){
+      const pc=(cls,label,obj)=>'<div class="planner-card '+cls+'"><div class="label">'+esc(label)+'</div><div class="planner-title">'+esc(obj?.title||"—")+'</div><div class="planner-reason">'+esc(obj?.reason||"Waiting for verified data")+'</div></div>';
+      plannerGrid.innerHTML=
+        pc("","Primary",planner.primary_action)+
+        pc("secondary","Secondary",planner.secondary_action)+
+        pc("work","Work",planner.work_action);
+    }
+
+    $("workCompanyName").textContent=workValue.company_name||"—";
+    $("workCompanyStars").textContent=workValue.company_rating!=null ? num(workValue.company_rating)+"★ company" : "—";
+    $("workPosition").textContent=workValue.position||"—";
+    $("workPassive").textContent=
+      workValue.observed_intelligence_gain!=null
+        ? "+"+num(workValue.observed_intelligence_gain)+" INT / +"+num(workValue.observed_endurance_gain)+" END per observed close"
+        : "Collecting realized position gain";
+    $("workStatsTotal").textContent=num(workStats.total_work_stats);
+    $("workStatsBreakdown").textContent="MAN "+num(workStats.manual_labor)+" · INT "+num(workStats.intelligence)+" · END "+num(workStats.endurance);
+    $("workTrains30d").textContent=num(trainSupply.received_trains_30d);
+    $("workTrainDays").textContent=num(trainSupply.allocation_days_30d)+" allocation days";
+    $("workCompanyRows").innerHTML=
+      row("Projected work gain · 30d",
+        "+"+num(workValue.projected_intelligence_gain_30d)+" INT · +"+num(workValue.projected_endurance_gain_30d)+" END")+
+      row("Passive gain confidence",confidenceText(workValue.passive_gain_confidence||"LOW"))+
+      row("Next Pub milestone",pubValue.next_star_milestone ? pubValue.next_star_milestone+"★ · "+esc(pubValue.next_star_unlock||"—") : "—")+
+      row("Job points",pubValue.job_points_per_day!=null ? num(pubValue.job_points_per_day)+" / day · "+num(pubValue.job_points_per_30d)+" / 30d" : "—");
+    $("workPositionRows").innerHTML=workScenarios.filter(x=>x.meets_recommended_stats).map(x=>
+      "<tr><td><b>"+esc(x.position||"—")+"</b></td><td class=\"right\">"+num(x.projected_manual_30d_at_current_train_rate)+"</td><td class=\"right\">"+num(x.projected_intelligence_30d_at_current_train_rate)+"</td><td class=\"right\">"+num(x.projected_endurance_30d_at_current_train_rate)+"</td></tr>"
+    ).join("");
 
     $("playerName").textContent = (p.name || "Bergholm").toUpperCase();
     $("heroPlayerId").textContent = "[" + (p.player_id ?? 3951204) + "]";
