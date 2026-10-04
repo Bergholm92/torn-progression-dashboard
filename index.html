@@ -1216,15 +1216,26 @@
   async function api(body, token="") {
     const headers = {"Content-Type":"application/json"};
     if (token) headers["X-Dashboard-Session"] = token;
-    const r = await fetch(API, {
-      method:"POST",
-      mode:"cors",
-      credentials:"omit",
-      cache:"no-store",
-      referrerPolicy:"no-referrer",
-      headers,
-      body:JSON.stringify(body)
-    });
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 12000);
+    let r;
+    try {
+      r = await fetch(API, {
+        method:"POST",
+        mode:"cors",
+        credentials:"omit",
+        cache:"no-store",
+        referrerPolicy:"no-referrer",
+        headers,
+        signal:controller.signal,
+        body:JSON.stringify(body)
+      });
+    } catch (e) {
+      if (e?.name === "AbortError") throw new Error("Dashboard request timed out");
+      throw e;
+    } finally {
+      clearTimeout(timer);
+    }
     let data = {};
     try { data = await r.json(); } catch {}
     if (!r.ok) {
@@ -1550,15 +1561,40 @@
     if (!token) return showLogin();
     const btn=$("refreshButton");
     btn.disabled=true;
+    $("playerMeta").textContent="Loading fresh data…";
+    const pp=$("pipelinePill");
+    pp.textContent="LOADING";
+    pp.className="pill warn";
+    let lastError=null;
     try {
-      const r=await api({action:"data"},token);
-      render(r.data||{});
+      for (let attempt=0; attempt<2; attempt++) {
+        try {
+          const r=await api({action:"data"},token);
+          render(r.data||{});
+          return;
+        } catch (e) {
+          lastError=e;
+          if (e.status===401) throw e;
+          if (attempt===0) {
+            pp.textContent="RETRYING";
+            $("playerMeta").textContent="First load failed · retrying…";
+            await new Promise(resolve=>setTimeout(resolve,1200));
+          }
+        }
+      }
+      throw lastError || new Error("Could not load dashboard data");
     } catch (e) {
       if (e.status===401) {
         clearTokens();
         showLogin("Session expired. Sign in again.");
       } else {
-        $("generatedAt").textContent="Could not refresh: " + (e.message||"error");
+        const msg=e?.message||"Unknown dashboard error";
+        pp.textContent="ERROR";
+        pp.className="pill bad";
+        $("playerMeta").textContent="Could not load data · tap refresh";
+        $("actionRows").innerHTML='<div class="action-item high"><div class="action-title">Dashboard data could not be loaded</div><div class="action-detail">'+esc(msg)+' · Tap the refresh button to try again.</div></div>';
+        $("plannerGrid").innerHTML='<div class="planner-card"><div class="label">Connection</div><div class="planner-title">Waiting for dashboard API</div><div class="planner-reason">'+esc(msg)+'</div></div>';
+        $("generatedAt").textContent="Load error: " + msg;
         showDashboard();
       }
     } finally {
