@@ -1554,7 +1554,7 @@
       row("War", esc(humanStatus(war.status) + " · " + (war.opponent||"—"))) +
       (war.starts_at ? row("War start", esc(dt(war.starts_at) + (warWhen ? " · " + warWhen : ""))) : "");
 
-    const meritAlloc=merits.upgrades||merits.allocations||merits.upgrade_levels||{};
+    const meritAlloc=d.merit_allocations||merits.upgrades||merits.allocations||merits.upgrade_levels||{};
     const meritLevel=(...names)=>{
       for(const name of names){
         const v=meritAlloc?.[name];
@@ -1567,7 +1567,7 @@
     const meritOptions=[
       {key:"life",label:"Life Points",level:meritLevel("life","life_points","Life Points"),tier:"S",why:"War survivability · +5% max life per rank",weight:10},
       {key:"crit",label:"Critical Hit",level:meritLevel("critical_hit","critical_hit_rate","crit","Critical Hit Rate"),tier:"S",why:"War damage · +0.5 percentage points crit per rank",weight:9.5},
-      {key:"crime",label:"Crime Progression",level:meritLevel("crime_progression","crime","Crime Progression"),tier:"A",why:"Crime 2.0 · +1% crime experience and skill gain per rank",weight:8.4},
+      {key:"crime",label:"Crime Progression",level:meritLevel("crime_progression","crime","Crime Progression","Crime XP"),tier:"A",why:"Crime 2.0 · +1% crime experience and skill gain per rank",weight:8.4},
       {key:"protection",label:"Protection",level:meritLevel("protection","defense","defence","Protection"),tier:"A",why:"Passive Defense · aligned with your DEF/DEX specialist-gym side",weight:7.8},
       {key:"evasion",label:"Evasion",level:meritLevel("evasion","dexterity","Evasion"),tier:"A",why:"Passive Dexterity · aligned with your DEF/DEX specialist-gym side",weight:7.8},
       {key:"brawn",label:"Brawn",level:meritLevel("brawn","strength","Brawn"),tier:"B",why:"Passive Strength · useful in combat, but not a Balboas-ratio fix",weight:6.5},
