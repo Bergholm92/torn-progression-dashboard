@@ -1565,30 +1565,35 @@
       if(d.merit_allocations && Object.keys(d.merit_allocations).length) return 0;
       return null;
     };
+    // Merit Optimizer V3: evidence-led. Do not turn one guide/post into a fake precision weight.
+    // Official mechanics define effects; 2026 community evidence is used only for broad consensus bands.
     const meritOptions=[
-      {key:"life",label:"Life Points",level:meritLevel("life","life_points","Life Points"),tier:"S",why:"War survivability · +5% max life per rank",weight:10},
-      {key:"crit",label:"Critical Hit",level:meritLevel("critical_hit","critical_hit_rate","crit","Critical Hit Rate"),tier:"S",why:"War damage · +0.5 percentage points crit per rank",weight:9.5},
-      {key:"crime",label:"Crime Progression",level:meritLevel("crime_progression","crime","Crime Progression","Crime XP"),tier:"A",why:"Crime 2.0 · +1% crime experience and skill gain per rank",weight:8.4},
-      {key:"protection",label:"Protection",level:meritLevel("protection","defense","defence","Protection"),tier:"A",why:"Passive Defense · aligned with your DEF/DEX specialist-gym side",weight:7.8},
-      {key:"evasion",label:"Evasion",level:meritLevel("evasion","dexterity","Evasion"),tier:"A",why:"Passive Dexterity · aligned with your DEF/DEX specialist-gym side",weight:7.8},
-      {key:"brawn",label:"Brawn",level:meritLevel("brawn","strength","Brawn"),tier:"B",why:"Passive Strength · useful in combat, but not a Balboas-ratio fix",weight:6.5},
-      {key:"sharpness",label:"Sharpness",level:meritLevel("sharpness","speed","Sharpness"),tier:"B",why:"Passive Speed · useful in combat, but not a Balboas-ratio fix",weight:6.5},
-      {key:"bank",label:"Bank Interest",level:meritLevel("bank_interest","bank","Bank Interest"),tier:"A",why:"Strong because your bank principal is already maxed",weight:8.2},
-      {key:"education",label:"Education Length",level:meritLevel("education_length","education","Education Length"),tier:"A",why:"Permanent account growth while education remains",weight:7.6},
-      {key:"rifle",label:"Rifle Mastery",level:meritLevel("rifle_mastery","Rifle Mastery"),tier:"A",why:"Direct weapon damage when rifle is your active combat weapon",weight:7.2},
-      {key:"nerve",label:"Nerve Bar",level:meritLevel("nerve_bar","nerve","Nerve Bar"),tier:"C",why:"+1 max nerve only · does not itself increase CE",weight:3.2}
+      {key:"life",label:"Life Points",level:meritLevel("life","life_points","Life Points"),group:"CORE COMBAT",effect:"+5% max life/rank",consensus:"HIGH",account:"HIGH"},
+      {key:"crit",label:"Critical Hit",level:meritLevel("critical_hit","critical_hit_rate","crit","Critical Hit Rate"),group:"CORE COMBAT",effect:"+0.5 percentage points crit/rank",consensus:"HIGH",account:"HIGH"},
+      {key:"protection",label:"Protection",level:meritLevel("protection","defense","defence","Protection"),group:"PASSIVE STAT",effect:"+3% Defense/rank",consensus:"HIGH",account:"HIGH"},
+      {key:"evasion",label:"Evasion",level:meritLevel("evasion","dexterity","Evasion"),group:"PASSIVE STAT",effect:"+3% Dexterity/rank",consensus:"HIGH",account:"HIGH"},
+      {key:"brawn",label:"Brawn",level:meritLevel("brawn","strength","Brawn"),group:"PASSIVE STAT",effect:"+3% Strength/rank",consensus:"HIGH",account:"HIGH"},
+      {key:"sharpness",label:"Sharpness",level:meritLevel("sharpness","speed","Sharpness"),group:"PASSIVE STAT",effect:"+3% Speed/rank",consensus:"HIGH",account:"HIGH"},
+      {key:"nerve",label:"Nerve Bar",level:meritLevel("nerve_bar","nerve","Nerve Bar"),group:"CONDITIONAL",effect:"+1 max nerve/rank",consensus:"MIXED",account:"UNKNOWN"},
+      {key:"rifle",label:"Rifle Mastery",level:meritLevel("rifle_mastery","Rifle Mastery"),group:"DEFERRED",effect:"weapon-specific",consensus:"CONDITIONAL",account:"LOW"},
+      {key:"crime",label:"Crime Progression",level:meritLevel("crime_progression","crime","Crime Progression","Crime XP"),group:"COMPLETE",effect:"+1% CE & skill gain/rank",consensus:"HIGH",account:"COMPLETE"},
+      {key:"bank",label:"Bank Interest",level:meritLevel("bank_interest","bank","Bank Interest"),group:"COMPLETE",effect:"bank return",consensus:"HIGH",account:"COMPLETE"},
+      {key:"education",label:"Education Length",level:meritLevel("education_length","education","Education Length"),group:"COMPLETE",effect:"education time reduction",consensus:"HIGH",account:"COMPLETE"}
     ];
-    const knownMerits=meritOptions.filter(x=>x.level!=null&&x.level<10).map(x=>{
-      const cost=x.level+1;
-      return {...x,cost,score:x.weight/cost};
-    }).sort((a,b)=>b.score-a.score);
+    const meritOpen=meritOptions.filter(x=>x.level!=null&&x.level<10).map(x=>({...x,cost:x.level+1}));
+    const cheapCombat=meritOpen.filter(x=>(x.group==="CORE COMBAT"||x.group==="PASSIVE STAT")&&x.cost<=5).sort((a,b)=>a.cost-b.cost||a.level-b.level);
+    const expensiveCombat=meritOpen.filter(x=>(x.group==="CORE COMBAT"||x.group==="PASSIVE STAT")&&x.cost>5).sort((a,b)=>a.cost-b.cost);
     const meritRec=$("meritRecommendation"), meritCandidates=$("meritCandidates");
-    if(knownMerits.length){
-      const m=knownMerits[0];
-      meritRec.innerHTML='<div class="action-item high"><div class="action-head"><div class="action-title">NEXT MERIT · '+esc(m.label)+' '+m.level+' → '+(m.level+1)+'</div><div class="action-tags"><span class="tag watch">TIER '+m.tier+'</span><span class="tag">'+m.cost+' merits</span></div></div><div class="action-detail">'+esc(m.why)+' · ranked by marginal account value per next-rank cost.</div></div>';
-      meritCandidates.innerHTML=knownMerits.slice(1,6).map(m=>row(m.label+" "+m.level+" → "+(m.level+1),m.cost+" merits · Tier "+m.tier+" · "+esc(m.why))).join("");
+    if(meritOpen.length){
+      const band=cheapCombat.slice(0,5);
+      meritRec.innerHTML='<div class="action-item high"><div class="action-head"><div class="action-title">BEST-VALUE BAND · '+esc(band.map(x=>x.label+" "+x.level+"→"+(x.level+1)).join(" · "))+'</div><div class="action-tags"><span class="tag watch">EVIDENCE-LED</span><span class="tag">NO FAKE #1</span></div></div><div class="action-detail">2026 evidence consistently favors spreading Life / Crit / passive battle-stat merits because rank costs escalate. The optimizer therefore exposes the cheap high-consensus band instead of inventing a precise winner.</div></div>';
+      meritCandidates.innerHTML=
+        band.map(m=>row(m.label+" "+m.level+" → "+(m.level+1),m.cost+" merits · "+m.effect+" · consensus "+m.consensus)).join("")+
+        expensiveCombat.slice(0,3).map(m=>row(m.label+" "+m.level+" → "+(m.level+1),m.cost+" merits · strong effect, but higher marginal cost")).join("")+
+        row("Nerve Bar","CONDITIONAL · only promote when observed refill/cap waste supports it")+
+        row("Weapon Mastery","DEFERRED · wait for a long-term weapon decision");
     } else {
-      meritRec.innerHTML='<div class="action-item medium"><div class="action-title">Allocation detail needed</div><div class="action-detail">The API currently exposes merit totals but not recognizable per-upgrade ranks. V2 will not invent a next merit recommendation until those ranks are available.</div></div>';
+      meritRec.innerHTML='<div class="action-item medium"><div class="action-title">Allocation detail needed</div><div class="action-detail">V3 will not invent a merit recommendation without verified per-upgrade ranks.</div></div>';
       meritCandidates.innerHTML=row("Available merits",num(merits.available))+row("Used merits",num(merits.used));
     }
 
