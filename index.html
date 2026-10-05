@@ -1562,6 +1562,7 @@
         const direct=merits?.[name];
         if(direct!=null && Number.isFinite(Number(direct))) return Number(direct);
       }
+      if(d.merit_allocations && Object.keys(d.merit_allocations).length) return 0;
       return null;
     };
     const meritOptions=[
@@ -1574,6 +1575,7 @@
       {key:"sharpness",label:"Sharpness",level:meritLevel("sharpness","speed","Sharpness"),tier:"B",why:"Passive Speed · useful in combat, but not a Balboas-ratio fix",weight:6.5},
       {key:"bank",label:"Bank Interest",level:meritLevel("bank_interest","bank","Bank Interest"),tier:"A",why:"Strong because your bank principal is already maxed",weight:8.2},
       {key:"education",label:"Education Length",level:meritLevel("education_length","education","Education Length"),tier:"A",why:"Permanent account growth while education remains",weight:7.6},
+      {key:"rifle",label:"Rifle Mastery",level:meritLevel("rifle_mastery","Rifle Mastery"),tier:"A",why:"Direct weapon damage when rifle is your active combat weapon",weight:7.2},
       {key:"nerve",label:"Nerve Bar",level:meritLevel("nerve_bar","nerve","Nerve Bar"),tier:"C",why:"+1 max nerve only · does not itself increase CE",weight:3.2}
     ];
     const knownMerits=meritOptions.filter(x=>x.level!=null&&x.level<10).map(x=>{
