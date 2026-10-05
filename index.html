@@ -1088,7 +1088,7 @@
     </div>
 
     <div class="card nerve-card">
-      <div class="section-head"><h2>Nerve Progression</h2><span id="nerveModelPill" class="pill">LEARNING</span></div>
+      <div class="section-head"><h2>NNB Evidence Tracker</h2><span id="nerveModelPill" class="pill">LEARNING</span></div>
       <div class="nerve-grid">
         <div><span class="label">Visible max nerve</span><strong id="nerveVisible">—</strong></div>
         <div><span class="label">Estimated NNB</span><strong id="nerveNNB">Calibrating</strong></div>
@@ -1101,7 +1101,7 @@
         <div class="nnb-node"><span>Next</span><strong id="nnbPathNext">—</strong></div>
       </div>
       <div id="nnbEvidence" class="nnb-evidence"></div>
-      <div id="nerveTracking" class="sub nerve-note">Building baseline from Crime 2.0 activity…</div>
+      <div id="nerveTracking" class="sub nerve-note">Tracking observable Crime 2.0 evidence…</div>
     </div>
 
     <div class="card">
@@ -1477,8 +1477,8 @@
     $("trainingRows").innerHTML=
       row("Best training right now","Train "+statName(optimizer.recommended_stat||"—")+
         ' <span class="small">· best modeled BS gain without risking specialist gym access</span>')+
-      row("Balboas","Safe · ratio "+ratioText+
-        ' <span class="small">· requirement 1.25 · safety threshold 1.30 · margin '+num(Math.round(Number(optimizer.balboas_margin_points||0)))+"</span>")+
+      row("Balboas",((Number(optimizer.balboas_ratio)>=1.25)?"Eligible":"AT RISK")+" · ratio "+ratioText+
+        ' <span class="small">· hard requirement 1.25 · dashboard buffer 1.30 (policy, not game rule) · margin '+num(Math.round(Number(optimizer.balboas_margin_points||0)))+"</span>")+
       allocationPlans.map(p=>row("Plan for "+num(p.energy_budget)+" energy",
         (Number(p.dexterity_energy)===Number(p.energy_budget) ? "Dexterity "+num(p.dexterity_energy)+"E" :
          "STR "+num(p.strength_energy)+"E · DEF "+num(p.defense_energy)+"E · SPD "+num(p.speed_energy)+"E · DEX "+num(p.dexterity_energy)+"E")+
@@ -1616,7 +1616,7 @@
       '<span>Nerve tracked <b>'+num(np.nerve_spent_since_tracking)+'</b></span>'+
       '<span>Attempts <b>'+num(np.attempts_since_tracking)+'</b></span>'+
       '<span>Progression confidence <b>'+esc(confidenceText(np.confidence||"LOW"))+'</b></span>';
-    $("nerveTracking").textContent="State confidence "+confidenceText(np.state_confidence||"LOW")+". The bar shows evidence maturity only — not CE progress. CE is hidden, so exact percentage and ETA are intentionally not estimated.";
+    $("nerveTracking").textContent="State confidence "+confidenceText(np.state_confidence||"LOW")+". The bar shows evidence maturity only — not CE progress. Crime Experience is hidden and NNB increases are not a linear progress meter, so exact CE percentage and ETA are intentionally not estimated.";
 
     $("crimeRows").innerHTML = crimes.map(c => {
       const sr = Number(c.attempts) > 0 ? ((Number(c.successes||0)/Number(c.attempts))*100).toFixed(1)+"%" : "—";
