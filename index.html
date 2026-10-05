@@ -1079,6 +1079,14 @@
       <div id="progressionRows"></div>
     </div>
 
+    <div class="card" id="meritOptimizer">
+      <div class="section-head"><h2>Merit Optimizer V2</h2><span class="pill">ACCOUNT-AWARE</span></div>
+      <div class="section-note sub">Ranks next merit spend by marginal value and next-rank cost. War utility and Crime 2.0 progression are separated from raw nerve capacity.</div>
+      <div id="meritRecommendation"></div>
+      <div id="meritCandidates"></div>
+      <div class="small" style="margin-top:10px">Guide basis: Life +5% max life/rank, Crit +0.5 percentage points/rank, Crime Progression +1% CE &amp; skill gain/rank, Nerve Bar +1 max nerve/rank. High ranks are penalized for escalating merit cost.</div>
+    </div>
+
     <div class="card nerve-card">
       <div class="section-head"><h2>Nerve Progression</h2><span id="nerveModelPill" class="pill">LEARNING</span></div>
       <div class="nerve-grid">
@@ -1545,6 +1553,42 @@
       row("Available merits", num(merits.available)) +
       row("War", esc(humanStatus(war.status) + " · " + (war.opponent||"—"))) +
       (war.starts_at ? row("War start", esc(dt(war.starts_at) + (warWhen ? " · " + warWhen : ""))) : "");
+
+    const meritAlloc=merits.upgrades||merits.allocations||merits.upgrade_levels||{};
+    const meritLevel=(...names)=>{
+      for(const name of names){
+        const v=meritAlloc?.[name];
+        if(v!=null && Number.isFinite(Number(v))) return Number(v);
+        const direct=merits?.[name];
+        if(direct!=null && Number.isFinite(Number(direct))) return Number(direct);
+      }
+      return null;
+    };
+    const meritOptions=[
+      {key:"life",label:"Life Points",level:meritLevel("life","life_points","Life Points"),tier:"S",why:"War survivability · +5% max life per rank",weight:10},
+      {key:"crit",label:"Critical Hit",level:meritLevel("critical_hit","critical_hit_rate","crit","Critical Hit Rate"),tier:"S",why:"War damage · +0.5 percentage points crit per rank",weight:9.5},
+      {key:"crime",label:"Crime Progression",level:meritLevel("crime_progression","crime","Crime Progression"),tier:"A",why:"Crime 2.0 · +1% crime experience and skill gain per rank",weight:8.4},
+      {key:"protection",label:"Protection",level:meritLevel("protection","defense","defence","Protection"),tier:"A",why:"Passive Defense · aligned with your DEF/DEX specialist-gym side",weight:7.8},
+      {key:"evasion",label:"Evasion",level:meritLevel("evasion","dexterity","Evasion"),tier:"A",why:"Passive Dexterity · aligned with your DEF/DEX specialist-gym side",weight:7.8},
+      {key:"brawn",label:"Brawn",level:meritLevel("brawn","strength","Brawn"),tier:"B",why:"Passive Strength · useful in combat, but not a Balboas-ratio fix",weight:6.5},
+      {key:"sharpness",label:"Sharpness",level:meritLevel("sharpness","speed","Sharpness"),tier:"B",why:"Passive Speed · useful in combat, but not a Balboas-ratio fix",weight:6.5},
+      {key:"bank",label:"Bank Interest",level:meritLevel("bank_interest","bank","Bank Interest"),tier:"A",why:"Strong because your bank principal is already maxed",weight:8.2},
+      {key:"education",label:"Education Length",level:meritLevel("education_length","education","Education Length"),tier:"A",why:"Permanent account growth while education remains",weight:7.6},
+      {key:"nerve",label:"Nerve Bar",level:meritLevel("nerve_bar","nerve","Nerve Bar"),tier:"C",why:"+1 max nerve only · does not itself increase CE",weight:3.2}
+    ];
+    const knownMerits=meritOptions.filter(x=>x.level!=null&&x.level<10).map(x=>{
+      const cost=x.level+1;
+      return {...x,cost,score:x.weight/cost};
+    }).sort((a,b)=>b.score-a.score);
+    const meritRec=$("meritRecommendation"), meritCandidates=$("meritCandidates");
+    if(knownMerits.length){
+      const m=knownMerits[0];
+      meritRec.innerHTML='<div class="action-item high"><div class="action-head"><div class="action-title">NEXT MERIT · '+esc(m.label)+' '+m.level+' → '+(m.level+1)+'</div><div class="action-tags"><span class="tag watch">TIER '+m.tier+'</span><span class="tag">'+m.cost+' merits</span></div></div><div class="action-detail">'+esc(m.why)+' · ranked by marginal account value per next-rank cost.</div></div>';
+      meritCandidates.innerHTML=knownMerits.slice(1,6).map(m=>row(m.label+" "+m.level+" → "+(m.level+1),m.cost+" merits · Tier "+m.tier+" · "+esc(m.why))).join("");
+    } else {
+      meritRec.innerHTML='<div class="action-item medium"><div class="action-title">Allocation detail needed</div><div class="action-detail">The API currently exposes merit totals but not recognizable per-upgrade ranks. V2 will not invent a next merit recommendation until those ranks are available.</div></div>';
+      meritCandidates.innerHTML=row("Available merits",num(merits.available))+row("Used merits",num(merits.used));
+    }
 
     const np=d.nerve_progression||{};
     $("nerveVisible").textContent=num(np.visible_max_nerve);
