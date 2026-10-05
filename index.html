@@ -833,6 +833,11 @@
     .nerve-grid .label{display:block;font-size:9px;color:#999;text-transform:uppercase;letter-spacing:.06em}
     .nerve-grid strong{display:block;margin-top:5px;font-size:17px;color:#eee}
     .nerve-note{margin-top:10px;line-height:1.45}
+    .nnb-path{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;margin-top:12px;padding:10px 12px;background:#121212;border:1px solid #303030}
+    .nnb-node{min-width:68px;text-align:center}.nnb-node span{display:block;font-size:9px;color:#888;text-transform:uppercase}.nnb-node strong{font-size:19px}
+    .nnb-track{height:6px;background:#292929;position:relative;overflow:hidden}.nnb-track i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--good))}
+    .nnb-evidence{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;font-size:10px;color:#999}
+    .nnb-evidence b{color:#ddd}
     @media(max-width:720px){.nerve-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
     .planner-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
@@ -1082,6 +1087,12 @@
         <div><span class="label">Next NNB</span><strong id="nerveNext">—</strong></div>
         <div><span class="label">Confidence</span><strong id="nerveConfidence">LOW</strong></div>
       </div>
+      <div class="nnb-path">
+        <div class="nnb-node"><span>Detected</span><strong id="nnbPathCurrent">—</strong></div>
+        <div class="nnb-track" title="Tracking confidence, not hidden CE percentage"><i id="nnbTrackFill" style="width:0%"></i></div>
+        <div class="nnb-node"><span>Next</span><strong id="nnbPathNext">—</strong></div>
+      </div>
+      <div id="nnbEvidence" class="nnb-evidence"></div>
       <div id="nerveTracking" class="sub nerve-note">Building baseline from Crime 2.0 activity…</div>
     </div>
 
@@ -1541,7 +1552,20 @@
     $("nerveNext").textContent=np.next_nnb!=null ? num(np.next_nnb)+" NNB · "+num(np.expected_visible_max_at_next_nnb)+" visible" : "Waiting for baseline";
     $("nerveConfidence").textContent=confidenceText(np.state_confidence||np.confidence||"LOW");
     $("nerveModelPill").textContent=humanStatus(np.model_status||"LEARNING");
-    $("nerveTracking").textContent="NNB state confidence "+confidenceText(np.state_confidence||"LOW")+". Tracking: "+num(np.nerve_spent_since_tracking)+" nerve spent · "+num(np.attempts_since_tracking)+" attempts · progression confidence "+confidenceText(np.confidence||"LOW")+". CE is hidden, so exact percentage and ETA are intentionally not estimated.";
+    const detectedNnb=np.estimated_nnb!=null?Number(np.estimated_nnb):null;
+    const nextNnb=np.next_nnb!=null?Number(np.next_nnb):null;
+    const bonusNerve=Number(np.visible_max_nerve)-Number(np.estimated_nnb);
+    $("nnbPathCurrent").textContent=detectedNnb!=null?num(detectedNnb):"—";
+    $("nnbPathNext").textContent=nextNnb!=null?num(nextNnb):"—";
+    const progressionConfidence=String(np.confidence||"LOW").toUpperCase();
+    const evidencePct=progressionConfidence==="HIGH"?100:progressionConfidence==="MEDIUM_HIGH"?82:progressionConfidence==="MEDIUM"?62:progressionConfidence==="LOW"?34:18;
+    $("nnbTrackFill").style.width=evidencePct+"%";
+    $("nnbEvidence").innerHTML=
+      '<span>Bonus nerve <b>'+(Number.isFinite(bonusNerve)?(bonusNerve>=0?"+":"")+num(bonusNerve):"—")+'</b></span>'+
+      '<span>Nerve tracked <b>'+num(np.nerve_spent_since_tracking)+'</b></span>'+
+      '<span>Attempts <b>'+num(np.attempts_since_tracking)+'</b></span>'+
+      '<span>Progression confidence <b>'+esc(confidenceText(np.confidence||"LOW"))+'</b></span>';
+    $("nerveTracking").textContent="State confidence "+confidenceText(np.state_confidence||"LOW")+". The bar shows evidence maturity only — not CE progress. CE is hidden, so exact percentage and ETA are intentionally not estimated.";
 
     $("crimeRows").innerHTML = crimes.map(c => {
       const sr = Number(c.attempts) > 0 ? ((Number(c.successes||0)/Number(c.attempts))*100).toFixed(1)+"%" : "—";
