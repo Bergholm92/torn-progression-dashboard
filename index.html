@@ -85,6 +85,9 @@
     .trend-grid{display:grid;grid-template-columns:1fr;gap:9px}
     .trend-card{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:11px}
     .trend-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+    .trend-toolbar{display:flex;gap:4px;align-items:center}
+    .trend-bucket{padding:5px 9px!important;min-height:0!important;font-size:10px!important;background:#252525!important;border:1px solid #3a3a3a!important;color:#aaa!important;text-shadow:none!important}
+    .trend-bucket.active{background:#9f2929!important;border-color:#b73737!important;color:#fff!important}
     .trend-value{font-size:17px;font-weight:750}
     .trend-delta{font-size:12px;margin-top:2px}
     .spark{width:100%;height:62px;margin-top:8px;display:block}
@@ -1029,7 +1032,7 @@
 
     <div class="card">
       <div class="top" style="margin:0 0 12px">
-        <div><h2 style="margin:0">Trends</h2><div id="trendPeriod" class="sub">Since tracking started</div></div>
+        <div><h2 style="margin:0">Trends</h2><div id="trendPeriod" class="sub">Since tracking started</div></div><div id="trendBuckets" class="trend-toolbar"><button class="trend-bucket" data-bucket="7d" type="button">7D</button><button class="trend-bucket" data-bucket="30d" type="button">30D</button><button class="trend-bucket active" data-bucket="all" type="button">ALL</button></div>
       </div>
       <div id="trendGrid" class="trend-grid"></div>
     </div>
@@ -1283,6 +1286,37 @@
   }
   function confidenceText(v){ return humanStatus(v); }
 
+  let trendState=null;
+  let trendBucket="all";
+
+  function renderTrends(){
+    if(!trendState) return;
+    const trends=trendState;
+    const hours=trendBucket==="7d"?168:trendBucket==="30d"?720:null;
+    const sliceMetric=(metric)=>{
+      const src=metric||{};
+      const series=Array.isArray(src.series)?src.series:[];
+      if(!series.length) return {...src,series:[]};
+      const last=series[series.length-1];
+      const lastTs=new Date(last.captured_at||last.ts||last.time||last.date).getTime();
+      let sliced=series;
+      if(hours&&Number.isFinite(lastTs)){
+        const cutoff=lastTs-hours*3600000;
+        sliced=series.filter(x=>{const t=new Date(x.captured_at||x.ts||x.time||x.date).getTime();return Number.isFinite(t)&&t>=cutoff;});
+        if(!sliced.length) sliced=[last];
+      }
+      const valueOf=x=>Number(x.value??x.total??x.networth??x.skill??x.y);
+      const first=valueOf(sliced[0]), end=valueOf(sliced[sliced.length-1]);
+      return {...src,series:sliced,last_value:Number.isFinite(end)?end:src.last_value,gain:Number.isFinite(first)&&Number.isFinite(end)?end-first:src.gain};
+    };
+    const availableHours=Number(trends.tracking_hours||0);
+    const effectiveHours=hours?Math.min(hours,availableHours||hours):availableHours;
+    $("trendPeriod").textContent=trendBucket==="all"?durationLabel(availableHours):((trendBucket==="7d"?"Last 7 days":"Last 30 days")+(availableHours<hours?" · "+durationLabel(availableHours)+" available":""));
+    const tb=sliceMetric(trends.battle),tn=sliceMetric(trends.networth),tc=sliceMetric(trends.crime);
+    $("trendGrid").innerHTML=trendCard("Total battle stats",tb.last_value,tb.gain,tb.series,"num")+trendCard("Net worth",tn.last_value,tn.gain,tn.series,"money")+trendCard((tc.crime_name||"Crime")+" skill",tc.last_value,tc.gain,tc.series,"num","Crime 2.0");
+    document.querySelectorAll(".trend-bucket").forEach(b=>b.classList.toggle("active",b.dataset.bucket===trendBucket));
+  }
+
   function render(d) {
     const p=d.profile||{}, b=d.battle_stats?.current||{}, d24=d.battle_stats?.delta_24h||{};
     const g=d.gym||{}, bars=d.bars||{}, e=d.economy||{}, prop=d.property||{}, pi=d.pi_economics||{};
@@ -1431,12 +1465,8 @@
       signalCard("Coding",sig.coding,num(sig.coding?.virus_completes)+" virus completes") +
       signalCard("Happy",sig.happy,num(sig.happy?.events)+" relevant events");
 
-    $("trendPeriod").textContent=durationLabel(trends.tracking_hours);
-    const tb=trends.battle||{}, tn=trends.networth||{}, tc=trends.crime||{};
-    $("trendGrid").innerHTML =
-      trendCard("Total battle stats",tb.last_value,tb.gain,tb.series,"num") +
-      trendCard("Net worth",tn.last_value,tn.gain,tn.series,"money") +
-      trendCard((tc.crime_name||"Crime")+" skill",tc.last_value,tc.gain,tc.series,"num","Crime 2.0");
+    trendState=trends;
+    renderTrends();
 
     $("actionRows").innerHTML = actions.map(a => {
       const state=String(a.state||"").toLowerCase();
@@ -1717,6 +1747,7 @@
     }
   });
 
+  $("trendBuckets").addEventListener("click",ev=>{const b=ev.target.closest("[data-bucket]");if(!b)return;trendBucket=b.dataset.bucket;renderTrends();});
   $("refreshButton").addEventListener("click",loadData);
   $("logoutButton").addEventListener("click",() => {
     clearTokens();
