@@ -1085,7 +1085,7 @@
     <div class="card" id="meritOptimizer">
       <div class="section-head"><h2>Merit Optimizer V2</h2><span class="pill">ACCOUNT-AWARE</span></div>
       <div class="section-note sub">Ranks next merit spend by marginal value and next-rank cost. War utility and Crime 2.0 progression are separated from raw nerve capacity.</div>
-      <div id="meritRecommendation"></div>
+      <div id="meritFreshness" class="small" style="margin:8px 0"></div><div id="meritRecommendation"></div>
       <div id="meritCandidates"></div>
       <div class="small" style="margin-top:10px">Guide basis: Life +5% max life/rank, Crit +0.5 percentage points/rank, Crime Progression +1% CE &amp; skill gain/rank, Nerve Bar +1 max nerve/rank. High ranks are penalized for escalating merit cost.</div>
     </div>
@@ -1580,10 +1580,14 @@
     $("progressionRows").innerHTML =
       row("Education", esc(edu.course_name||"—")) +
       row("Ends", esc(dt(edu.ends_at) + (eduWhen ? " · " + eduWhen : ""))) +
-      row("Available merits", num(merits.available)) +
+      row("Available merits (snapshot)", num(merits.available)+(meritStale?" · STALE":"")+" · "+esc(meritTimestamp?dt(meritTimestamp):"timestamp unavailable")) +
       row("War", esc(humanStatus(war.status) + " · " + (war.opponent||"—"))) +
       (war.starts_at ? row("War start", esc(dt(war.starts_at) + (warWhen ? " · " + warWhen : ""))) : "");
 
+    const meritTimestamp=merits.captured_at||merits.snapshot_at||null;
+    const meritAge=meritTimestamp?(Date.now()-new Date(meritTimestamp).getTime())/3600000:null;
+    const meritStale=meritAge==null||!Number.isFinite(meritAge)||meritAge>6;
+    $("meritFreshness").textContent="Merit balance: "+num(merits.available)+" · snapshot "+(meritTimestamp?dt(meritTimestamp):"time unavailable")+(meritStale?" · STALE / verify in Torn":" · recently collected");
     const meritAlloc=d.merit_allocations||merits.upgrades||merits.allocations||merits.upgrade_levels||{};
     const meritLevel=(...names)=>{
       for(const name of names){
@@ -1605,7 +1609,7 @@
       {key:"brawn",label:"Brawn",level:meritLevel("brawn","strength","Brawn"),group:"PASSIVE STAT",effect:"+3% Strength/rank",consensus:"HIGH",account:"HIGH"},
       {key:"sharpness",label:"Sharpness",level:meritLevel("sharpness","speed","Sharpness"),group:"PASSIVE STAT",effect:"+3% Speed/rank",consensus:"HIGH",account:"HIGH"},
       {key:"nerve",label:"Nerve Bar",level:meritLevel("nerve_bar","nerve","Nerve Bar"),group:"CONDITIONAL",effect:"+1 max nerve/rank",consensus:"MIXED",account:"UNKNOWN"},
-      {key:"rifle",label:"Rifle Mastery",level:meritLevel("rifle_mastery","Rifle Mastery"),group:"DEFERRED",effect:"weapon-specific",consensus:"CONDITIONAL",account:"LOW"},
+      {key:"rifle",label:"Rifle Mastery",level:meritLevel("rifle_mastery","Rifle Mastery"),group:"RIFLE CONFIRMED",effect:"+1% rifle damage and +0.2 accuracy/rank",consensus:"CONDITIONAL",account:"HIGH"},
       {key:"crime",label:"Crime Progression",level:meritLevel("crime_progression","crime","Crime Progression","Crime XP"),group:"COMPLETE",effect:"+1% CE & skill gain/rank",consensus:"HIGH",account:"COMPLETE"},
       {key:"bank",label:"Bank Interest",level:meritLevel("bank_interest","bank","Bank Interest"),group:"COMPLETE",effect:"bank return",consensus:"HIGH",account:"COMPLETE"},
       {key:"education",label:"Education Length",level:meritLevel("education_length","education","Education Length"),group:"COMPLETE",effect:"education time reduction",consensus:"HIGH",account:"COMPLETE"}
@@ -1621,7 +1625,7 @@
         band.map(m=>row(m.label+" "+m.level+" → "+(m.level+1),m.cost+" merits · "+m.effect+" · consensus "+m.consensus)).join("")+
         expensiveCombat.slice(0,3).map(m=>row(m.label+" "+m.level+" → "+(m.level+1),m.cost+" merits · strong effect, but higher marginal cost")).join("")+
         row("Nerve Bar","CONDITIONAL · only promote when observed refill/cap waste supports it")+
-        row("Weapon Mastery","DEFERRED · wait for a long-term weapon decision");
+        row("Rifle Mastery", "ELIGIBLE · rifle category confirmed · evaluate marginal value before spending");
     } else {
       meritRec.innerHTML='<div class="action-item medium"><div class="action-title">Allocation detail needed</div><div class="action-detail">V3 will not invent a merit recommendation without verified per-upgrade ranks.</div></div>';
       meritCandidates.innerHTML=row("Available merits",num(merits.available))+row("Used merits",num(merits.used));
