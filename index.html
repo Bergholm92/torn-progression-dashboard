@@ -1618,7 +1618,10 @@
     const cheapCombat=meritOpen.filter(x=>(x.group==="CORE COMBAT"||x.group==="PASSIVE STAT")&&x.cost<=5).sort((a,b)=>a.cost-b.cost||a.level-b.level);
     const expensiveCombat=meritOpen.filter(x=>(x.group==="CORE COMBAT"||x.group==="PASSIVE STAT")&&x.cost>5).sort((a,b)=>a.cost-b.cost);
     const meritRec=$("meritRecommendation"), meritCandidates=$("meritCandidates");
-    if(meritOpen.length){
+    if(meritStale){
+      meritRec.innerHTML='<div class="action-item medium"><div class="action-head"><div class="action-title">HOLD · VERIFY MERIT BALANCE</div><div class="action-tags"><span class="tag watch">STALE SNAPSHOT</span></div></div><div class="action-detail">Merit data is older than 6 hours. No spend recommendation can be made from this snapshot. Refresh the Torn collection and compare all account-wide alternatives before spending.</div></div>';
+      meritCandidates.innerHTML=row("Last recorded balance",num(merits.available)+" · not current")+row("Next step","Refresh merit data before evaluating purchases");
+    } else if(meritOpen.length){
       const band=cheapCombat.slice(0,5);
       meritRec.innerHTML='<div class="action-item high"><div class="action-head"><div class="action-title">BEST-VALUE BAND · '+esc(band.map(x=>x.label+" "+x.level+"→"+(x.level+1)).join(" · "))+'</div><div class="action-tags"><span class="tag watch">EVIDENCE-LED</span><span class="tag">NO FAKE #1</span></div></div><div class="action-detail">2026 evidence consistently favors spreading Life / Crit / passive battle-stat merits because rank costs escalate. The optimizer therefore exposes the cheap high-consensus band instead of inventing a precise winner.</div></div>';
       meritCandidates.innerHTML=
