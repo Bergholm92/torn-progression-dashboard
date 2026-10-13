@@ -1622,13 +1622,15 @@
       meritRec.innerHTML='<div class="action-item medium"><div class="action-head"><div class="action-title">HOLD · VERIFY MERIT BALANCE</div><div class="action-tags"><span class="tag watch">STALE SNAPSHOT</span></div></div><div class="action-detail">Merit data is older than 6 hours. No spend recommendation can be made from this snapshot. Refresh the Torn collection and compare all account-wide alternatives before spending.</div></div>';
       meritCandidates.innerHTML=row("Last recorded balance",num(merits.available)+" · not current")+row("Next step","Refresh merit data before evaluating purchases");
     } else if(meritOpen.length){
-      const band=cheapCombat.slice(0,5);
-      meritRec.innerHTML='<div class="action-item high"><div class="action-head"><div class="action-title">BEST-VALUE BAND · '+esc(band.map(x=>x.label+" "+x.level+"→"+(x.level+1)).join(" · "))+'</div><div class="action-tags"><span class="tag watch">EVIDENCE-LED</span><span class="tag">NO FAKE #1</span></div></div><div class="action-detail">2026 evidence consistently favors spreading Life / Crit / passive battle-stat merits because rank costs escalate. The optimizer therefore exposes the cheap high-consensus band instead of inventing a precise winner.</div></div>';
+      const rifle=meritOpen.find(x=>x.key==="rifle");
+      const candidatePool=meritOpen.filter(x=>x.cost<=Number(merits.available)&&["CORE COMBAT","PASSIVE STAT","RIFLE CONFIRMED"].includes(x.group));
+      const band=candidatePool.sort((a,b)=>a.cost-b.cost||a.label.localeCompare(b.label));
+      meritRec.innerHTML='<div class="action-item high"><div class="action-head"><div class="action-title">AFFORDABLE COMBAT OPTIONS · '+esc(band.map(x=>x.label+" "+x.level+"→"+(x.level+1)).join(" · "))+'</div><div class="action-tags"><span class="tag watch">EVIDENCE-LED</span><span class="tag">NO FAKE #1</span></div></div><div class="action-detail">Options are ordered by cost, not combat value. Passive stats, Critical Hit and confirmed Rifle Mastery are all eligible. No best-buy claim without a validated combat comparison.</div></div>';
       meritCandidates.innerHTML=
         band.map(m=>row(m.label+" "+m.level+" → "+(m.level+1),m.cost+" merits · "+m.effect+" · consensus "+m.consensus)).join("")+
         expensiveCombat.slice(0,3).map(m=>row(m.label+" "+m.level+" → "+(m.level+1),m.cost+" merits · strong effect, but higher marginal cost")).join("")+
         row("Nerve Bar","CONDITIONAL · only promote when observed refill/cap waste supports it")+
-        row("Rifle Mastery", "ELIGIBLE · rifle category confirmed · evaluate marginal value before spending");
+        row("Decision","HOLD or choose after comparing real combat impact · rifle category confirmed");
     } else {
       meritRec.innerHTML='<div class="action-item medium"><div class="action-title">Allocation detail needed</div><div class="action-detail">V3 will not invent a merit recommendation without verified per-upgrade ranks.</div></div>';
       meritCandidates.innerHTML=row("Available merits",num(merits.available))+row("Used merits",num(merits.used));
