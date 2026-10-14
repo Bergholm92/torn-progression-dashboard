@@ -1575,6 +1575,11 @@
       row("Rent where buying PI breaks even", money(pivs.dynamic_pi_break_even_rent_100d)+" / 100 days") +
       row("Best use of capital", ready.pi_recommendation_ready ? esc(piDecision(pivs.comparison_status,pivs.best_stock_ticker)) : "Waiting for fresh market data", ready.pi_recommendation_ready?"good":"warn");
 
+    const meritTimestamp=merits.captured_at||merits.snapshot_at||null;
+    const meritAge=meritTimestamp?(Date.now()-new Date(meritTimestamp).getTime())/3600000:null;
+    const meritStale=meritAge==null||!Number.isFinite(meritAge)||meritAge>6;
+    $("meritFreshness").textContent="Merit balance: "+num(merits.available)+" · snapshot "+(meritTimestamp?dt(meritTimestamp):"time unavailable")+(meritStale?" · STALE / verify in Torn":" · recently collected");
+
     const eduWhen=edu.ends_at ? relativeTime(edu.ends_at) : "";
     const warWhen=war.starts_at ? relativeTime(war.starts_at) : "";
     $("progressionRows").innerHTML =
@@ -1584,10 +1589,6 @@
       row("War", esc(humanStatus(war.status) + " · " + (war.opponent||"—"))) +
       (war.starts_at ? row("War start", esc(dt(war.starts_at) + (warWhen ? " · " + warWhen : ""))) : "");
 
-    const meritTimestamp=merits.captured_at||merits.snapshot_at||null;
-    const meritAge=meritTimestamp?(Date.now()-new Date(meritTimestamp).getTime())/3600000:null;
-    const meritStale=meritAge==null||!Number.isFinite(meritAge)||meritAge>6;
-    $("meritFreshness").textContent="Merit balance: "+num(merits.available)+" · snapshot "+(meritTimestamp?dt(meritTimestamp):"time unavailable")+(meritStale?" · STALE / verify in Torn":" · recently collected");
     const meritAlloc=d.merit_allocations||merits.upgrades||merits.allocations||merits.upgrade_levels||{};
     const meritLevel=(...names)=>{
       for(const name of names){
