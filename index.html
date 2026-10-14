@@ -1083,11 +1083,11 @@
     </div>
 
     <div class="card" id="meritOptimizer">
-      <div class="section-head"><h2>Merit Optimizer V2</h2><span class="pill">ACCOUNT-AWARE</span></div>
-      <div class="section-note sub">Ranks next merit spend by marginal value and next-rank cost. War utility and Crime 2.0 progression are separated from raw nerve capacity.</div>
+      <div class="section-head"><h2>Merit Optimizer V3</h2><span class="pill">ACCOUNT-AWARE</span></div>
+      <div class="section-note sub">Community-informed combat recommendation, checked against account merit ranks and known game effects. Guide opinions can differ; no invented win-rate.</div>
       <div id="meritFreshness" class="small" style="margin:8px 0"></div><div id="meritRecommendation"></div>
       <div id="meritCandidates"></div>
-      <div class="small" style="margin-top:10px">Guide basis: Life +5% max life/rank, Crit +0.5 percentage points/rank, Crime Progression +1% CE &amp; skill gain/rank, Nerve Bar +1 max nerve/rank. High ranks are penalized for escalating merit cost.</div>
+      <div class="small" style="margin-top:10px">Community evidence: <a href="https://www.torn.com/forums.php?p=threads&amp;t=16563115" target="_blank" rel="noopener">Torn forum guide</a> · <a href="https://www.reddit.com/r/torncity/comments/1w68ler/" target="_blank" rel="noopener">player discussion</a>. These sources inform priorities but do not prove a mathematically optimal build.</div>
     </div>
 
     <div class="card nerve-card">
@@ -1619,9 +1619,20 @@
     const cheapCombat=meritOpen.filter(x=>(x.group==="CORE COMBAT"||x.group==="PASSIVE STAT")&&x.cost<=5).sort((a,b)=>a.cost-b.cost||a.level-b.level);
     const expensiveCombat=meritOpen.filter(x=>(x.group==="CORE COMBAT"||x.group==="PASSIVE STAT")&&x.cost>5).sort((a,b)=>a.cost-b.cost);
     const meritRec=$("meritRecommendation"), meritCandidates=$("meritCandidates");
-    if(meritStale){
-      meritRec.innerHTML='<div class="action-item medium"><div class="action-head"><div class="action-title">HOLD · VERIFY MERIT BALANCE</div><div class="action-tags"><span class="tag watch">STALE SNAPSHOT</span></div></div><div class="action-detail">Merit data is older than 6 hours. No spend recommendation can be made from this snapshot. Refresh the Torn collection and compare all account-wide alternatives before spending.</div></div>';
-      meritCandidates.innerHTML=row("Last recorded balance",num(merits.available)+" · not current")+row("Next step","Refresh merit data before evaluating purchases");
+    const riflePick=meritOpen.find(x=>x.key==="rifle");
+    const evasionPick=meritOpen.find(x=>x.key==="evasion");
+    const brawnPick=meritOpen.find(x=>x.key==="brawn");
+    const metaCost=[riflePick,evasionPick,brawnPick].every(Boolean)
+      ? riflePick.cost+evasionPick.cost+brawnPick.cost : null;
+    const metaEligible=metaCost!=null && metaCost<=Number(merits.available);
+    if(metaEligible){
+      meritRec.innerHTML='<div class="action-item high"><div class="action-head"><div class="action-title">COMMUNITY-INFORMED · RIFLE + EVASION + BRAWN</div><div class="action-tags"><span class="tag">CONDITIONAL</span><span class="tag">'+(meritStale?'VERIFY BALANCE':'SNAPSHOT VERIFIED')+'</span></div></div><div class="action-detail">Your confirmed Rifle focus and low-cost passive ranks support this 5-merit combination. Torn guides differ on Crit/Life priority; this is a practical recommendation, not a proven win-rate optimum. '+(meritStale?'Balance snapshot is over 6h old: verify in Torn before spending.':'Check ranks in Torn before spending.')+'</div></div>';
+      meritCandidates.innerHTML=[riflePick,evasionPick,brawnPick].map(m=>row(m.label+" "+m.level+" → "+(m.level+1),m.cost+" merits · "+m.effect)).join("")+
+        row("Total cost",metaCost+" / "+num(merits.available)+" recorded merits")+
+        row("Alternative","Critical Hit Rate "+(meritOpen.find(x=>x.key==="crit")?.level??"—")+" → "+((meritOpen.find(x=>x.key==="crit")?.level??0)+1)+" · 5 merits; guides differ");
+    } else if(meritStale){
+      meritRec.innerHTML='<div class="action-item medium"><div class="action-head"><div class="action-title">VERIFY MERIT BALANCE</div></div><div class="action-detail">Snapshot is older than 6h. Long-term merit options remain valid, but spending requires checking available merits and ranks in Torn.</div></div>';
+      meritCandidates.innerHTML=row("Last recorded balance",num(merits.available)+" · verify before spend");
     } else if(meritOpen.length){
       const rifle=meritOpen.find(x=>x.key==="rifle");
       const candidatePool=meritOpen.filter(x=>x.cost<=Number(merits.available)&&["CORE COMBAT","PASSIVE STAT","RIFLE CONFIRMED"].includes(x.group));
