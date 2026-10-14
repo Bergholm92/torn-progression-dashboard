@@ -1705,7 +1705,19 @@
       for (let attempt=0; attempt<2; attempt++) {
         try {
           const r=await api({action:"data"},token);
-          render(r.data||{});
+          try {
+            render(r.data||{});
+          } catch(renderError) {
+            const message=String(renderError?.message||renderError);
+            console.error("Dashboard render failed",renderError);
+            pp.textContent="RENDER ERROR";
+            pp.className="pill bad";
+            $("playerMeta").textContent="Rendering failed: "+message;
+            $("progressionRows").innerHTML=row("Rendering error",esc(message),"bad");
+            $("generatedAt").textContent="Render error: "+message;
+            showDashboard();
+            return;
+          }
           return;
         } catch (e) {
           lastError=e;
