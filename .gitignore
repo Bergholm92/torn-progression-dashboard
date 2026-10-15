@@ -1,0 +1,25 @@
+# Credentials, tokens and local environment
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+credentials.json
+
+# Supabase local state / secrets
+supabase/.temp/
+supabase/.branches/
+supabase/functions/.env
+supabase/functions/.env.*
+!supabase/functions/.env.example
+
+# Dependencies / build / temporary files
+node_modules/
+.DS_Store
+*.log
+coverage/
+dist/
+.tmp/
