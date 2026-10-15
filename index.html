@@ -1364,10 +1364,23 @@
     const plannerGrid=$("plannerGrid");
     if(plannerGrid){
       const pc=(cls,label,obj)=>'<div class="planner-card '+cls+'"><div class="label">'+esc(label)+'</div><div class="planner-title">'+esc(obj?.title||"—")+'</div><div class="planner-reason">'+esc(obj?.reason||"Waiting for verified data")+'</div></div>';
-      plannerGrid.innerHTML=
-        pc("","Primary",planner.primary_action)+
-        pc("secondary","Secondary",planner.secondary_action)+
-        pc("work","Work",planner.work_action);
+      const currentRole=String(workValue.position||"").trim();
+      const reportedRole=String(planner.work_action?.position||"").trim();
+      const workConflict=/manager/i.test(String(planner.work_action?.title||"")) && currentRole.toLowerCase()!=="manager";
+      const workCard=workConflict || (reportedRole&&currentRole&&reportedRole.toLowerCase()!==currentRole.toLowerCase())
+        ? {title:"Current role: "+(currentRole||"Unknown")+" · review needed",reason:"Planner recommendation conflicts with current role. The old Manager recommendation is suppressed. Received trains and observed daily work gains are measurements, not proof of best position."}
+        : planner.work_action;
+      const battleCard=String(planner.primary_action?.action||"")==="TRAIN_RECOMMENDED_STAT"
+        ? {title:warActive?"War active · preserve flexibility":"Training: "+trainingStat,
+           reason:warActive?"War takes priority over gym training.":(cockpitOptimizer.recommended_stat
+             ? "From specialist-gym optimizer · Balboas ratio "+(balboasKnown?balboasRatio.toFixed(3):"unavailable")+". Verify gym access before spending energy."
+             : "Training recommendation unavailable; no stat selected.")}
+        : planner.primary_action;
+      const crimeCard=String(planner.secondary_action?.action||"")==="CONTINUE_CRIME_TARGET"
+        ? {title:"Crime skill in progress: "+(topCrime.meta?.crime_name||"Disposal")+" · verify priority",
+           reason:"This is a completion heuristic, NOT a verified best Crime 2.0 target. Check risk, profit, nerve efficiency and current goals before switching crimes."}
+        : planner.secondary_action;
+      plannerGrid.innerHTML=pc("","Primary",battleCard)+pc("secondary","Secondary",crimeCard)+pc("work","Work",workCard);
     }
 
     $("workCompanyName").textContent=workValue.company_name||"—";
