@@ -9,6 +9,7 @@ This is the **public Torn Progression Dashboard frontend repository**. It is *no
 - Distinguish VERIFIED, PARTIAL, BLOCKED and NOT STARTED. Never claim to have tested live production if you have only examined source code.
 - Use small, reviewable commits/PRs with test evidence. Do not silently overwrite concurrent changes.
 - For complex work, maintain a short checkable implementation plan in the PR description or a dedicated task document.
+- **Option A delivery**: after user review, the user merges the PR to `main` and the frontend publishes automatically through GitHub Pages. Do not add a second manual release request. Read `docs/DELIVERY_WORKFLOW.md`.
 
 ## Non-negotiable correctness rules
 - Separate observed Torn data from derivations, assumptions, forecasts and recommendations.
@@ -23,8 +24,8 @@ This is the **public Torn Progression Dashboard frontend repository**. It is *no
 - The backend Edge Function source and SQL definitions must not be imported into this public repository without an explicit security and publication decision. Use a PRIVATE backend repository, described in `docs/CODEX_MIGRATION.md`.
 - Never put secret values in documentation, test fixtures, browser JavaScript, logs, screenshots or CI output. Use environment variables and placeholders.
 - Treat the active Supabase project as production. Do not run destructive SQL, alter grants/RLS, redeploy functions, send email, or modify production data merely to test.
-- Do not deploy or merge into `main` without explicit user approval; use a branch/PR for proposed changes.
-- Production credentials and GitHub Pages deployment may require separate user authorization.
+- Do not merge into `main` without user approval: the **user-performed merge** is the normal production release authorization. Do not ask for a second post-merge release approval; GitHub Pages deploys from `main` automatically. Treat PR checks as necessary evidence, not comprehensive proof of backend correctness.
+- Never put production credentials in Codex tasks or the public frontend. Backend production CD is not yet configured; see the private core repository's `docs/DELIVERY_WORKFLOW.md`.
 
 ## Local validation
 - Frontend is currently a single-file `index.html` with no package manifest.

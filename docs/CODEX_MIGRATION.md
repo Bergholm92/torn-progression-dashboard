@@ -22,13 +22,13 @@ Use Codex for autonomous multi-step development while preserving the existing li
 5. Export the complete schema, including 137 analytics views, 22 functions, RLS policies, grants, triggers and schedules, using the supported schema/migration workflow (`supabase db pull` and schema inspection). **Do not** hand-write a fake baseline migration or treat a list of table names as a schema backup.
 6. Review generated SQL for hidden secrets, private user data, SECURITY DEFINER and grants before committing. Keep secrets out of Git and rotate any inadvertently exposed secret.
 7. Create an exact baseline tag and reproducibility report. Check that a fresh local/staging project can initialize without production data.
-8. Add a controlled deployment workflow. Staging first; production only after explicit approval and a successful quality gate.
+8. Add a validated automated deployment workflow. Staging/reproducibility and quality checks come first; when ready, **user merge to `main` is the sole ordinary production approval** (no post-merge manual release step).
 
 ## Phase 3 — quality and operations
 - Add tests for education prerequisites, current job/company facts, Cracking vs Disposal crime advice, merit decisions, Balboa/specialist gym eligibility, battle-stat projections, historical retention, freshness, and conflicts.
 - Compare actual API responses with expected behavior using **sanitized fixtures**, not live secret credentials in CI.
 - Introduce explicit statuses: PASS, FAIL, REVIEW, NO DATA, BLOCKED. Never equate a successful API call with sound advice.
-- Add GitHub Actions checks and require an approved PR to deploy.
+- Add GitHub Actions PR checks; the reviewed merge to `main` triggers automatic deployment after verified guards. Frontend Pages already builds/deploys from `main`; backend automation remains to be implemented.
 - Review email delivery's current preflight/idempotency limitation before any unattended sending.
 
 ## Codex Cloud setup — human actions needed
@@ -36,7 +36,10 @@ Use Codex for autonomous multi-step development while preserving the existing li
 2. Connect GitHub and authorize `Bergholm92/torn-progression-dashboard`. Create/publish a Codex Cloud environment for the repository.
 3. Start with the prompt in `docs/CODEX_FIRST_TASK.md`, and choose a code-changing task/PR rather than only a discussion.
 4. Later create and connect the private `torn-progression-core` repo. Provide Supabase credentials through a supported secrets mechanism in Codex only if backend access is needed; never paste token values into prompts or Git.
-5. Start all backend changes in a branch, verify against a safe environment, and approve production promotion separately.
+5. Start all backend changes in a branch and verify against a safe environment. **After safe CI/CD is implemented, approving and merging the PR is the complete ordinary production approval**, without a second promotion click.
+
+## Option A delivery policy — 2026-10-15
+The user selected: discuss and define requirements in ChatGPT, Codex implements and tests, user reviews/merges a PR, then automatic deployment from `main`. See `docs/DELIVERY_WORKFLOW.md`. This policy does not mean the backend CI/CD pipeline is implemented; production remains unchanged until safe migrations and staging/tests are proven.
 
 ## Completion criteria
 Migration is **not complete** until Codex can inspect frontend, Edge Functions, full SQL schema/views/functions, execute tests, and propose reviewable PRs while live infrastructure remains untouched unless explicitly approved.
